@@ -1,6 +1,9 @@
 
 def parse_model_config(path):
-    """Parses the yolo-v3 layer configuration file and returns module definitions"""
+    """
+    Parses the configuration (cfg) file and returns a list containing dictionary
+    with modules defination.
+    """
     with open(path , 'r') as file:
         lines = file.read().split('\n')
         lines = [x for x in lines if x and not x.startswith('#')]

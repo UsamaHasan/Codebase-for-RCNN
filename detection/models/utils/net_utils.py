@@ -124,8 +124,25 @@ def shortcut_layer(from_:int,output_filter:list) -> list:
         raise Exception('Error during shortcut_layer.')
 
 class EmptyLayer(nn.Module):
-    """Placeholder for 'route' and 'shortcut' layers"""
-    
+    """
+    Placeholder for 'route' and 'shortcut' layers
+    """
     def __init__(self):
         super(EmptyLayer, self).__init__()
 
+class YoloLayer(nn.Module):
+    """
+    Yolo detection layer.
+    """
+    def __init__(self,anchors,num_classes,img_dim=416):
+        super(YoloLayer,self).__init__()
+        self.anchors = anchors
+        self.num_classes = num_classes
+        self.ignore_threshold = 0.5
+        self.grid_size= 0
+        self.img_dim = img_dim
+    def forward(self,input):
+        return input
+    def _init_loss_func(self):
+        self.mse_loss = nn.MSELoss()
+        self.bce_loss = nn.BCELoss()

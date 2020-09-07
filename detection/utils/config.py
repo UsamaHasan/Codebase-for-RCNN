@@ -2,4 +2,4 @@ import os
 """
 This contains all the paths, keys and other information neccessary.
 """
-CFG_PATH = os.path.join(os.getcwd() ,'cfg/yolov3.cfg') 
+YOLO_V3_CFG_PATH = os.path.join('/home/ncai/RoadSurfaceAnalysis/src' ,'cfg/yolov3.cfg') 

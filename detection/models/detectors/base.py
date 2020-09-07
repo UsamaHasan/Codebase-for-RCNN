@@ -1,8 +1,11 @@
 import torch
 import torch.nn as nn
 import os , sys
+#for unit testing remove after first build.
 sys.path.append('/home/ncai/RoadSurfaceAnalysis/src/')
 from detection.models.utils.net_utils import *
+from detection.utils.utils import parse_model_config
+from detection.utils.config import *
 from abc import ABCMeta, abstractmethod
 
 class BaseDetector(nn.Module,metaclass=ABCMeta):
@@ -13,13 +16,17 @@ class BaseDetector(nn.Module,metaclass=ABCMeta):
     to the backbone feature detector. The derived will call forward to extract feature and then
     implement there own defination for further calculation. 
     """
-    def __init__(self):
+    def __init__(self,cfg_path):
         super(BaseDetector,self).__init__()
         #modules_list will contain all the Sequential modules of model.
-        self.modules_list = nn.ModuleList()
+        if(cfg_path!=''):
+
+            self.modules_list = BaseDetector.model_from_cfg(cfg)
+        else:
+            self.modules_list = BaseDetector.model_from_cfg(YOLO_V3_CFG_PATH)
     
     @staticmethod    
-    def model_from_cfg(self,cfg_list:list) -> nn.ModuleList:
+    def model_from_cfg(cfg:str) -> nn.ModuleList:
         """ 
         The following functions receives yolo cfg as  list containing dictionaries with the module
         name e.g Convolutional and their respective hyperparameter.
@@ -28,7 +35,16 @@ class BaseDetector(nn.Module,metaclass=ABCMeta):
             param[out]:nn.ModuleList
         Raises:
             KeyError: If a key doesn't exist in dictionary.
+        Returns:
+            nn.ModuleList
         """
+        if(isinstance(cfg,str)):
+            cfg_list = parse_model_config(cfg)
+        elif(isinstance(cfg,list)):
+            cfg_list = cfg
+        else:
+            return (Exception)            
+        modules_list = nn.ModuleList()
         parameters = cfg_list.pop(0)
         output_filter = [int(parameters['channels'])]
         #check if the list is empty.
@@ -62,13 +78,26 @@ class BaseDetector(nn.Module,metaclass=ABCMeta):
                     #Adding an Empty layer in module list.
 
                 elif(module_dict['type'] == 'yolo'):
-                    pass
-                self.modules_list.append(module)
+                    #reading mask from yolo cfg as index for anchors.
+                    anchors_idx = [int(x) for x in  module_dict['mask'].split(',')]
+                    #loading anchors inside a list.
+                    anchors = [int(x) for x in module_dict['anchors'].split(',')]
+                    #list containing tuples of anchors
+                    anchors =  [(anchors[i],anchors[i+1]) for i in range(0,len(anchors),2)]
+                    #list of tuples of anchors according to the index from cfg file.
+                    anchors = [anchors[i] for i in anchors_idx]
+                    num_classes = int(module_dict["classes"])
+                    img_size = int(parameters['height']) 
+                    #Add Yolo layer here
+                    yolo_layer = YoloLayer(anchors,num_classes,img_size)
+                    module.add_module((f'{id}'),yolo_layer)
+                modules_list.append(module)
                 output_filter.append(filters)
             
             except KeyError:
                 raise KeyError(f"Error key {module_dict['type']} not found")
-        return self.modules_list
+        return modules_list
+
     @abstractmethod
     def forward_train(self):
         """
@@ -91,5 +120,10 @@ class BaseDetector(nn.Module,metaclass=ABCMeta):
         Args:
             param[in]:str weights -> path to weight file
             param[out]:nn.Module_list -> nn.module_list containing modules  
+        """
+        pass
+    def save_weights():
+        """
+        Save weights of the model after checkpoints during training. 
         """
         pass

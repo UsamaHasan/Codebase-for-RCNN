@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 
 def activation_layer(func:str):
@@ -143,7 +144,25 @@ class YoloLayer(nn.Module):
         self.grid_size= 0
         self.img_dim = img_dim
         self._init_loss_func()
+    def compute_grid_offset(self,grid_size):
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.grid_size = grid_size
+        #
+        self.stride = self.img_dim / self.grid_size
+        #
+        self.grid_x = torch.arange(grid_size).repeat(grid_size, 1).view([1, 1, grid_size, grid_size])\
+        .float().to(device)
+        #
+        self.grid_y = torch.arange(grid_size).repeat(grid_size, 1).t().view([1, 1, grid_size, grid_size])\
+        .float().to(device)
+        self.scaled_anchors =  torch.Tensor([(w/self.stride,h/self.stride) for w , h in self.anchors])\
+            .float().to(device)
+        self.anchors_w = self.scaled_anchors[:,0:1].view((1,self.num_anchors,1,1))
+        self.anchors_h = self.scaled_anchors[:,1:2].view((1,self.num_anchors,1,1))
+        print(self.anchors_h)
     def forward(self,x,targets,input_dim):
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        
         num_samples = x.size(0)
         grid_size = x.size(2)
         prediction = (
@@ -151,8 +170,17 @@ class YoloLayer(nn.Module):
             .permute(0, 1, 3, 4, 2)
             .contiguous()
         )
-        
-        return 0.0 , 0.0
+        x = prediction[...,0]
+        y = prediction[...,1]
+        w = prediction[...,2]
+        h = prediction[...,3]
+        pred_conf = torch.sigmoid(prediction[...,4])
+        pred_cls  = torch.sigmoid(prediction[...,5:])
+        if grid_size != self.grid_size:
+            self.compute_grid_offset(grid_size)
+        pred_boxes = prediction[...,:4].float().to(device)
+        print(pred_boxes.shape)
+        return 0.0 ,0.0
     def _init_loss_func(self):
         """
         Private function to initialize loss functions

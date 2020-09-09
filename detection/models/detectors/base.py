@@ -20,10 +20,9 @@ class BaseDetector(nn.Module,metaclass=ABCMeta):
         super(BaseDetector,self).__init__()
         #modules_list will contain all the Sequential modules of model.
         if(cfg_path!=''):
-
-            self.modules_list = BaseDetector.model_from_cfg(cfg)
+            self.modules_list , self.output_filters , self.module_dicts = BaseDetector.model_from_cfg(cfg)
         else:
-            self.modules_list = BaseDetector.model_from_cfg(YOLO_V3_CFG_PATH)
+            self.modules_list , self.output_filters ,self.module_dicts = BaseDetector.model_from_cfg(YOLO_V3_CFG_PATH)
     
     @staticmethod    
     def model_from_cfg(cfg:str) -> nn.ModuleList:
@@ -96,7 +95,7 @@ class BaseDetector(nn.Module,metaclass=ABCMeta):
             
             except KeyError:
                 raise KeyError(f"Error key {module_dict['type']} not found")
-        return modules_list
+        return modules_list , output_filter , cfg_list
 
     @abstractmethod
     def forward_train(self):
@@ -110,10 +109,10 @@ class BaseDetector(nn.Module,metaclass=ABCMeta):
         Forward pass function during testing.
         """
         raise NotImplementedError
+    @abstractmethod
     def forward(self,input:torch.Tensor) -> torch.Tensor:
         """Forward pass function."""
-        return torch.Tensor([1,2,3])
-        #raise NotImplementedError('Forward Function Not Implemented')
+        raise NotImplementedError('Forward Function Not Implemented')
     def _model_set_weights(self,weights:str):
         """
         Initialize the weights of the model.

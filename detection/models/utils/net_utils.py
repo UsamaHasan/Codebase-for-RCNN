@@ -137,12 +137,25 @@ class YoloLayer(nn.Module):
     def __init__(self,anchors,num_classes,img_dim=416):
         super(YoloLayer,self).__init__()
         self.anchors = anchors
+        self.num_anchors = len(self.anchors)
         self.num_classes = num_classes
         self.ignore_threshold = 0.5
         self.grid_size= 0
         self.img_dim = img_dim
-    def forward(self,input):
-        return input
+        self._init_loss_func()
+    def forward(self,x,targets,input_dim):
+        num_samples = x.size(0)
+        grid_size = x.size(2)
+        prediction = (
+            x.view(num_samples, self.num_anchors, self.num_classes + 5, grid_size, grid_size)
+            .permute(0, 1, 3, 4, 2)
+            .contiguous()
+        )
+        
+        return 0.0 , 0.0
     def _init_loss_func(self):
+        """
+        Private function to initialize loss functions
+        """
         self.mse_loss = nn.MSELoss()
         self.bce_loss = nn.BCELoss()

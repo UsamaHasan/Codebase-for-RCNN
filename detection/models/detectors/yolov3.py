@@ -17,8 +17,8 @@ class Yolov3(BaseDetector):
         The following function will initializa a torch model, you can either initialize the model and 
         set the weights here. Or can the respective functions later.
         Args:(Optional)
-            param[in]: weights_path -> path to weight file to initialize weights.(default='')
-            param[in]: cfg_path -> path to cfg file.(default=[])
+            weights_path(str): path to weight file to initialize weights.(default='')
+            cfg_path(str): path to cfg file.(default=[])
         """
         super(Yolov3,self).__init__(cfg_path)
         
@@ -32,7 +32,9 @@ class Yolov3(BaseDetector):
         """
         Recevices Image as Tensor and return bbox 
         Args:
-            param[in]:input Tensor-> Image as input tensor.
+            input(Tensor): Image as input tensor.
+        Returns:
+
         """
         
         input_dim = x.size(2)
@@ -49,7 +51,8 @@ class Yolov3(BaseDetector):
                 x = layers_output[-1] + layers_output[idx]  
             elif module_dict['type'] == 'route':
                 #Concat layer
-                x = torch.cat((layers_output[int(layer)] for layer in module_dict['layers'].split(',')),1)
+                x = torch.cat([layers_output[int(layer)] for layer in module_dict['layers'].split(',')]\
+                    ,1)
             elif module_dict['type'] == 'yolo':
                 #yolo Layer.
                 x , layer_loss = module[0](x,targets,input_dim)
@@ -78,3 +81,4 @@ if __name__ == '__main__':
     net = Yolov3()
     inp = torch.randn(size=(1,3,416,416))
     output = net(inp)
+    print(output.shape)

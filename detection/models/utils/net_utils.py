@@ -198,10 +198,16 @@ class YoloLayer(nn.Module):
         output =  torch.cat(
             [pred_boxes.view(batch_size,-1,4) , pred_confidence.view(batch_size,-1,1)\
                  , pred_class.view(batch_size,-1,self.num_classes)],-1 
-        )  
+        )
+        #for testing.   
         if targets is None:
             return output , 0
         
+        #for training.
+        
+        
+
+
     def _init_loss_func(self):
         """
         Private function to initialize loss functions

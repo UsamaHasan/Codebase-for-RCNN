@@ -159,7 +159,7 @@ class YoloLayer(nn.Module):
             .float().to(device)
         self.anchors_w = self.scaled_anchors[:,0:1].view((1,self.num_anchors,1,1))
         self.anchors_h = self.scaled_anchors[:,1:2].view((1,self.num_anchors,1,1))
-        print(self.anchors_h)
+        
     def forward(self,x,targets,input_dim):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
@@ -170,8 +170,8 @@ class YoloLayer(nn.Module):
             .permute(0, 1, 3, 4, 2)
             .contiguous()
         )
-        x = prediction[...,0]
-        y = prediction[...,1]
+        x = torch.sigmoid(prediction[...,0])
+        y = torch.sigmoid(prediction[...,1])
         w = prediction[...,2]
         h = prediction[...,3]
         pred_conf = torch.sigmoid(prediction[...,4])

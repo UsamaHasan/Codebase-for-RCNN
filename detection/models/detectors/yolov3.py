@@ -4,10 +4,10 @@ import torch.nn as nn
 from torch import Tensor
 
 #for unit testing remove after first build.
-sys.path.append('/home/ncai/RoadSurfaceAnalysis/src/')
+sys.path.append('/home/ncai01/Codebase-of-RCNN/')
 from detection.models.detectors.base import BaseDetector
 from detection.utils.config import *
-
+from detection.models.utils.model_visualization import viz
 class Yolov3(BaseDetector):
     """
     Implementation of YOLO model for object detection also known as darknet.
@@ -59,24 +59,20 @@ class Yolov3(BaseDetector):
         yolo_output = (torch.cat(yolo_output,1)).to('cpu')
         return yolo_output if targets is None else (yolo_output,loss)
         #should raise not Implemented error
-    def _init_model():
+    def _init_model(self):
         """
         private function to initialize model after cfg has initialized.
         """
         pass
-    def forward_train():
+    def forward_train(self):
         """
         """
         raise NotImplementedError
-    def forward_test():
+    def forward_test(self):
         """
         """
         raise NotImplementedError
 
 # For unit testing .
 if __name__ == '__main__':
-
-    net = Yolov3()
-    temp_input = torch.randn(size=(1,3,416,416))
-    output = net(temp_input) # should raise error.
-    print(output)
+    pass

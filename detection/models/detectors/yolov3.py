@@ -75,4 +75,6 @@ class Yolov3(BaseDetector):
 
 # For unit testing .
 if __name__ == '__main__':
-    pass
+    net = Yolov3()
+    inp = torch.randn(size=(1,3,416,416))
+    output = net(inp)

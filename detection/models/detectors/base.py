@@ -16,10 +16,10 @@ class BaseDetector(nn.Module,metaclass=ABCMeta):
     to the backbone feature detector. The derived will call forward to extract feature and then
     implement there own defination for further calculation. 
     """
-    def __init__(self,cfg_path):
+    def __init__(self,cfg):
         super(BaseDetector,self).__init__()
         #modules_list will contain all the Sequential modules of model.
-        if(cfg_path!=''):
+        if(cfg != ''):
             self.modules_list , self.output_filters , self.module_dicts = BaseDetector.model_from_cfg(cfg)
         else:
             self.modules_list , self.output_filters ,self.module_dicts = BaseDetector.model_from_cfg(YOLO_V3_CFG_PATH)

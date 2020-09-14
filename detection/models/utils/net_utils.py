@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from .utils.utils import build_targets
+from .utils import build_targets
 
 def activation_layer(func:str):
     """

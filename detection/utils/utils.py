@@ -21,3 +21,14 @@ def parse_model_config(path):
                 module_defs[-1][key.rstrip()] = value.strip()
 
         return module_defs
+
+def parse_path(path):
+    """
+    Parse cfg path to return model name.
+    Args:
+        path(str):
+    """
+    if (path.endswith('.cfg')):
+        n = path.split('/')[-1]
+        n = n.split('.')[0]
+    return n

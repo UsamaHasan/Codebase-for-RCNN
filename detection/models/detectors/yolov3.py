@@ -8,6 +8,7 @@ sys.path.append('/home/ncai01/Codebase-of-RCNN/')
 from detection.models.detectors.base import BaseDetector
 from detection.utils.config import *
 from detection.models.utils.model_visualization import viz
+from detection.utils.config import *
 class Yolov3(BaseDetector):
     """
     Implementation of YOLO model for object detection also known as darknet.
@@ -20,13 +21,12 @@ class Yolov3(BaseDetector):
             weights_path(str): path to weight file to initialize weights.(default='')
             cfg_path(str): path to cfg file.(default=[])
         """
-        super(Yolov3,self).__init__(cfg_path)
-        
+        if(cfg_path!=''):
+            super(Yolov3,self).__init__(cfg_path)
+        else:
+            super(Yolov3,self).__init__(YOLO_V3_CFG_PATH)
         if(weights_path!=''):
             super(Yolov3,self)._model_set_weights(weights_path)
-        else:
-            pass #Implement a method to define trained weights of yolo and initialize model with them
-        
             
     def forward(self,x:Tensor,targets=None) -> Tensor:
         """

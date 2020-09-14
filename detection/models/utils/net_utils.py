@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from .utils.utils import build_targets
 
 def activation_layer(func:str):
     """
@@ -204,6 +205,10 @@ class YoloLayer(nn.Module):
             return output , 0
         
         #for training.
+        else:
+            raise NotImplementedError(f'Module under construction')
+            #build_targets(pred_boxes,targets,self.scaled_anchors,conf_threshold,targets)
+
         
         
 

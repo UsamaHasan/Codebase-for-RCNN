@@ -210,9 +210,6 @@ class YoloLayer(nn.Module):
             #build_targets(pred_boxes,targets,self.scaled_anchors,conf_threshold,targets)
 
         
-        
-
-
     def _init_loss_func(self):
         """
         Private function to initialize loss functions

@@ -1,25 +1,74 @@
 import sys
+import torch
+import torch.nn as nn
+import numpy as np
 #for unit testing
 sys.path.append('/home/ncai01/Codebase-of-RCNN')
 from detection.models.builder import build_detector
-def init_detector(cfg_file:str):
+from detection.models.detectors.base import BaseDetector
+def init_detector(cfg_file=None,checkpoint=None):
     """
     Initialize Model. 
     Args:
-
+        cfg_file(str) : path to cfg file
+        checkpoint(str) : path to checkpoint/weights file 
     Returns:
+        BaseDetector child class
     """
-    if isinstance(cfg_file,str):
-        detector = build_detector(cfg_file)
-        return detector
+    if isinstance(cfg_file,str) and is not None:
+
+        model = build_detector(cfg_file)
+        
+        #load checkpoint of the model.
+        if checkpoint is not None:
+            #call model.load_checkpoint here.
+            pass
+        
+        #check for avaiable devices
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        model.to(device)
+
+        #set model on evaluation mode.0
+        model.eval()
+        
+        return model
     else:
         raise TypeError('Object type Should be str -> path to model config file')
 
-def inference_detector():
+def inference_detector(detector,img):
     """
     Args:
+        detector(BaseDetector) : 
+        img (np.ndarray , torch.Tensor):
+        Example:
+            img -> img.shape(3,100,100)
     Returns:
+        output(np.ndarray): 
     """
-    pass
+    
+    if isinstance(detector,(BaseDetector,nn.Module)):
+        if isinstance(img,(torch.Tensor,np.ndarray)):
+            #check if the img is numpy array.
+            if isinstance(img,np.ndarray):
+                #convert it into torch.tensor
+                torch.from_numpy(img)
+            #check for channel first.
+            if img.size(0) is not in [3]:
+                #make channel first.
+                img = img.permute(2,0,1)
+            #append batch_size:
+            img = img.view(1,img.size(0),img.size(1),img.size(2))
+
+        else:
+            raise TypeError(f'Input should be an Image of type np.ndarry or torch.Tensor')
+        
+        #
+    else:
+        raise TypeError(f'Should pass a Detector object')
+
+# for unit testing.
 if __name__ == '__main__':
-    init_detector('/home/ncai01/Codebase-of-RCNN/cfg/yolov3.cfg')
+
+    detector = init_detector('/home/ncai01/Codebase-of-RCNN/cfg/yolov3.cfg')
+    inp = torch.randn((3,416,416))
+    inference_detector(detector,inp)

@@ -21,9 +21,7 @@ class BaseDetector(nn.Module,metaclass=ABCMeta):
         #modules_list will contain all the Sequential modules of model.
         if(cfg != ''):
             self.modules_list , self.output_filters , self.module_dicts = BaseDetector.model_from_cfg(cfg)
-        else:
-            self.modules_list , self.output_filters ,self.module_dicts = BaseDetector.model_from_cfg(YOLO_V3_CFG_PATH)
-    
+        
     @staticmethod    
     def model_from_cfg(cfg:str) -> nn.ModuleList:
         """ 
@@ -113,14 +111,18 @@ class BaseDetector(nn.Module,metaclass=ABCMeta):
     def forward(self,input:torch.Tensor) -> torch.Tensor:
         """Forward pass function."""
         raise NotImplementedError('Forward Function Not Implemented')
-    def _model_set_weights(self,weights:str):
+    def _model_load_weights(self,weights:str):
         """
         Initialize the weights of the model.
         Args:
-            param[in]:str weights -> path to weight file
-            param[out]:nn.Module_list -> nn.module_list containing modules  
+            weights:str weights -> path to weight file  
+        Returns:
+            nn.Module_list -> nn.module_list containing modules
         """
-        pass
+        if isinstance(weights,str):
+            pass
+        else:
+            raise TypeError(f'Should be str object')
     def save_weights():
         """
         Save weights of the model after checkpoints during training. 

@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import os , sys
+import numpy as np
 #for unit testing remove after first build.
 sys.path.append('/home/ncai01/Codebase-of-RCNN')
 from detection.models.utils.net_utils import *
@@ -40,7 +41,7 @@ class BaseDetector(nn.Module,metaclass=ABCMeta):
         elif(isinstance(cfg,list)):
             cfg_list = cfg
         else:
-            return (Exception)            
+            return Exception(f"Provide either path to cfg file or it's list")            
         modules_list = nn.ModuleList()
         parameters = cfg_list.pop(0)
         output_filter = [int(parameters['channels'])]
@@ -111,7 +112,8 @@ class BaseDetector(nn.Module,metaclass=ABCMeta):
     def forward(self,input:torch.Tensor) -> torch.Tensor:
         """Forward pass function."""
         raise NotImplementedError('Forward Function Not Implemented')
-    def _model_load_weights(self,weights:str):
+    @abstractmethod
+    def load_weights(self,weights:str):
         """
         Initialize the weights of the model.
         Args:
@@ -120,7 +122,16 @@ class BaseDetector(nn.Module,metaclass=ABCMeta):
             nn.Module_list -> nn.module_list containing modules
         """
         if isinstance(weights,str):
-            pass
+            with open(weights,'rb') as w:
+                header = np.fromfile(w,count=5)
+                weights = np.fromfile(w)
+                for model_dict , module  in zip(self.module_dicts,self.modules_list):
+                    if model_dict['type'] == 'convolutional':
+                        conv_layer = module[0]
+                        if model_dict['batch_normalize']:
+                            bn_layer = module[1]
+                            bias_size = bn_layer.bias.numel()
+                            
         else:
             raise TypeError(f'Should be str object')
     def save_weights():

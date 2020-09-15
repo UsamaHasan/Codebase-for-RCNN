@@ -31,4 +31,6 @@ def parse_path(path):
     if (path.endswith('.cfg')):
         n = path.split('/')[-1]
         n = n.split('.')[0]
-    return n
+        return n
+    else:
+        raise Exception(f'Broken path to cfg file.')

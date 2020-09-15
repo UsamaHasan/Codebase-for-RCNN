@@ -13,7 +13,7 @@ def activation_layer(func:str):
     """
     try:
         if(func=='leaky'):
-            return nn.LeakyReLU(negative_slope=0.01)
+            return nn.LeakyReLU(negative_slope=0.1)
         elif(func=='linear'):
             return nn.ReLU(inplace=True)
     except Exception:

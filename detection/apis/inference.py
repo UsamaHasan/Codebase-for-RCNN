@@ -15,14 +15,14 @@ def init_detector(cfg_file=None,checkpoint=None):
     Returns:
         BaseDetector child class
     """
-    if isinstance(cfg_file,str) and is not None:
+    if isinstance(cfg_file,str) and not None:
 
         model = build_detector(cfg_file)
         
         #load checkpoint of the model.
         if checkpoint is not None:
             #call model.load_checkpoint here.
-            pass
+            model.load_checkpoint()
         
         #check for avaiable devices
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -53,7 +53,7 @@ def inference_detector(detector,img):
                 #convert it into torch.tensor
                 torch.from_numpy(img)
             #check for channel first.
-            if img.size(0) is not in [3]:
+            if img.size(0) not in [3]:
                 #make channel first.
                 img = img.permute(2,0,1)
             #append batch_size:
@@ -69,6 +69,7 @@ def inference_detector(detector,img):
 # for unit testing.
 if __name__ == '__main__':
 
-    detector = init_detector('/home/ncai01/Codebase-of-RCNN/cfg/yolov3.cfg')
+    detector = init_detector('/home/ncai01/Codebase-of-RCNN/cfg/yolov3.cfg',\
+        checkpoint='/home/ncai01/Codebase-of-RCNN/weights/yolov3.weights')
     inp = torch.randn((3,416,416))
     inference_detector(detector,inp)

@@ -26,7 +26,7 @@ class Yolov3(BaseDetector):
         else:
             super(Yolov3,self).__init__(YOLO_V3_CFG_PATH)
         if(weights_path!=''):
-            super(Yolov3,self)._model_set_weights(weights_path)
+            super(Yolov3,self)._model_load_weights(weights_path)
             
     def forward(self,x:Tensor,targets=None) -> Tensor:
         """
@@ -62,6 +62,14 @@ class Yolov3(BaseDetector):
         yolo_output = (torch.cat(yolo_output,1)).to('cpu')
         return yolo_output if targets is None else (yolo_output,loss)
         #should raise not Implemented error
+    def load_weights(self,weight_file):
+        """
+        Args:
+
+        Return:
+        """
+        super(Yolov3,self).load_weights(weight_file)
+
     def _init_model(self):
         """
         private function to initialize model after cfg has initialized.

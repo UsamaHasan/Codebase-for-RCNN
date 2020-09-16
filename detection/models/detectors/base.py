@@ -3,7 +3,7 @@ import torch.nn as nn
 import os , sys
 import numpy as np
 #for unit testing remove after first build.
-sys.path.append('/home/ncai01/Codebase-of-RCNN')
+sys.path.append('/home/ncai/RoadSurfaceAnalysis/src')
 from detection.models.utils.net_utils import *
 from detection.utils.utils import parse_model_config
 from detection.utils.config import *

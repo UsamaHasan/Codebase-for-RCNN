@@ -2,10 +2,12 @@ import sys
 import torch
 import torch.nn as nn
 import numpy as np
+from torchvision.ops import nms
 #for unit testing
-sys.path.append('/home/ncai01/Codebase-of-RCNN')
+sys.path.append('/home/ncai/RoadSurfaceAnalysis/src')
 from detection.models.builder import build_detector
 from detection.models.detectors.base import BaseDetector
+from detection.utils.config import *
 def init_detector(cfg_file=None,checkpoint=None):
     """
     Initialize Model. 
@@ -22,8 +24,7 @@ def init_detector(cfg_file=None,checkpoint=None):
         #load checkpoint of the model.
         if checkpoint is not None:
             #call model.load_checkpoint here.
-            model.load_checkpoint()
-        
+            model.load_weights(checkpoint)
         #check for avaiable devices
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         model.to(device)
@@ -58,10 +59,13 @@ def inference_detector(detector,img):
                 img = img.permute(2,0,1)
             #append batch_size:
             img = img.view(1,img.size(0),img.size(1),img.size(2))
-
+            with torch.no_grad():
+                output = detector(img)
+                #Apply non-max suppression
+                
+                nms(output,torch.tensor(CONFIDENCE_THRESHOLD),NMS_THRESHOLD)
         else:
             raise TypeError(f'Input should be an Image of type np.ndarry or torch.Tensor')
-        
         #
     else:
         raise TypeError(f'Should pass a Detector object')
@@ -69,7 +73,7 @@ def inference_detector(detector,img):
 # for unit testing.
 if __name__ == '__main__':
 
-    detector = init_detector('/home/ncai01/Codebase-of-RCNN/cfg/yolov3.cfg',\
-        checkpoint='/home/ncai01/Codebase-of-RCNN/weights/yolov3.weights')
-    inp = torch.randn((3,416,416))
+    detector = init_detector('/home/ncai/RoadSurfaceAnalysis/src/cfg/yolov3.cfg',\
+        checkpoint='/home/ncai/RoadSurfaceAnalysis/src/weights/yolov3_3300.weights')
+    inp = torch.randn((3,416,416),device='cuda')
     inference_detector(detector,inp)

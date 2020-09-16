@@ -121,19 +121,8 @@ class BaseDetector(nn.Module,metaclass=ABCMeta):
         Returns:
             nn.Module_list -> nn.module_list containing modules
         """
-        if isinstance(weights,str):
-            with open(weights,'rb') as w:
-                header = np.fromfile(w,count=5)
-                weights = np.fromfile(w)
-                for model_dict , module  in zip(self.module_dicts,self.modules_list):
-                    if model_dict['type'] == 'convolutional':
-                        conv_layer = module[0]
-                        if model_dict['batch_normalize']:
-                            bn_layer = module[1]
-                            bias_size = bn_layer.bias.numel()
-                            
-        else:
-            raise TypeError(f'Should be str object')
+        #
+        raise NotImplementedError('Loading Weights is not implemented for this Model.')
     def save_weights():
         """
         Save weights of the model after checkpoints during training. 

@@ -1,4 +1,5 @@
 import os , sys
+import numpy as np
 import torch
 import torch.nn as nn
 from torch import Tensor
@@ -28,15 +29,15 @@ class Yolov3(BaseDetector):
         if(weights_path!=''):
             super(Yolov3,self)._model_load_weights(weights_path)
             
+        
     def forward(self,x:Tensor,targets=None) -> Tensor:
         """
         Recevices Image as Tensor and return bbox 
         Args:
             input(Tensor): Image as input tensor.
         Returns:
-
         """
-        
+
         input_dim = x.size(2)
         loss = 0.0
         yolo_output = []
@@ -68,7 +69,47 @@ class Yolov3(BaseDetector):
 
         Return:
         """
-        super(Yolov3,self).load_weights(weight_file)
+        idx = 0
+        if isinstance(weight_file,str):
+            with open(weight_file,'rb') as w:
+                header = np.fromfile(w,count=5)
+                weights = np.fromfile(w)
+                for model_dict , module  in zip(self.module_dicts,self.modules_list):
+                    if model_dict['type'] in CONVOLUTIONAL:
+                        conv_layer = module[0]
+                        if model_dict['batch_normalize']:
+                            bn_layer = module[1]
+                            num_bias = bn_layer.bias.numel()
+                            num_weights = bn_layer.weight.numel()
+                            #biases.
+                            bn_biases = torch.from_numpy(weights[idx:idx+num_bias]).view_as(bn_layer.bias)
+                            bn_layer.bias.data.copy_(bn_biases)
+                            idx+=num_bias
+                            #weights
+                            bn_weights = torch.from_numpy(weights[idx:idx+num_weights]).view_as(bn_layer.weight)
+                            bn_layer.weight.data.copy_(bn_weights)
+                            idx+=num_weights
+                            #Running Mean
+                            bn_mean = torch.from_numpy(weights[idx:idx+num_bias]).view_as(bn_layer.running_mean)
+                            bn_layer.running_mean.data.copy_(bn_mean)
+                            idx+=num_bias
+                            #Running_Variance
+                            bn_variance = torch.from_numpy(weights[idx:idx+num_bias]).view_as(bn_layer.running_var)
+                            bn_layer.running_var.data.copy_(bn_variance)
+                            idx+=num_bias
+                        else:
+                            #Conv_layer biases
+                            num_bias = conv_layer.bias.numel()
+                            conv_bias = torch.from_numpy(weights[idx:idx+num_bias]).view_as(conv_layer.bias)
+                            conv_layer.bias.data.copy_(conv_bias)
+                            idx+=num_bias
+                        
+                        num_weights = conv_layer.weight.numel()
+                        conv_weights = torch.from_numpy(weights[idx:idx+num_weights]).view_as(conv_layer.weight)
+                        conv_layer.weight.data.copy_(conv_weights)
+                        idx+=num_weights
+        else:                   
+            raise TypeError(f'Should be str object')
 
     def _init_model(self):
         """
@@ -87,6 +128,7 @@ class Yolov3(BaseDetector):
 # For unit testing .
 if __name__ == '__main__':
     net = Yolov3()
+    net.load_weights('/home/ncai01/Codebase-of-RCNN/weights/yolov3.weights')
     inp = torch.randn(size=(1,3,416,416))
     output = net(inp)
     print(output.shape)

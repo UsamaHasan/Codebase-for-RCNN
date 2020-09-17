@@ -130,6 +130,7 @@ class Yolov3(BaseDetector):
 
 # For unit testing .
 if __name__ == '__main__':
+    
     net = Yolov3()
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     net.to(device)

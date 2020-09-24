@@ -28,7 +28,7 @@ def init_detector(cfg_file=None,checkpoint=None):
         #check for avaiable devices
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         model.to(device)
-
+        #comment for git push
         #set model on evaluation mode.0
         model.eval()
         

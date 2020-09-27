@@ -22,6 +22,26 @@ def intersection_over_union():
     Returns:
         iou(tensor) : intersection over union.
     """
+    """
+            
+        yb1 , xb1 , yb2 , xb2 = gt
+        bbox_area = (yb2 - yb1) * (xb2 - xb1)
+        inter_y1 = max(ya1 , yb1)
+        inter_x1 = max(xa1 , xb1)
+        inter_y2 = min(ya2 , yb2)
+        inter_x2 = min(xa2 , xb2)
+
+        if (inter_y1 > inter_y2) or (inter_x1 > inter_x2):
+            iou = 0.0
+        else:
+            intersection_area = (inter_y2 - inter_y1) * ( inter_x2 - inter_x1) 
+            iou = intersection_area/(anchor_area + bbox_area - intersection_area)
+            
+            assert iou >= 0.0
+            assert iou <= 1.0
+
+        ious[i,j] = iou
+    """
     if not x1y1x2y2:
         # Transform from center and width to exact coordinates
         b1_x1, b1_x2 = box1[:, 0] - box1[:, 2] / 2, box1[:, 0] + box1[:, 2] / 2

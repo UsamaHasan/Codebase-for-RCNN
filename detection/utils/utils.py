@@ -34,3 +34,24 @@ def parse_path(path):
         return n
     else:
         raise Exception(f'Broken path to cfg file.')
+
+
+def accuracy(output, target, topk=(1,)):
+    """Computes the accuracy over the k top predictions for the specified values of k"""
+
+    with torch.no_grad():
+    #we will use biggest k, and calculate all precisions from 0 to k
+        maxk = max(topk)
+        batch_size = target.size(0)
+    
+        _, pred = output.topk(input=maxk, dim=1, largest=True, sorted=True)
+        pred = pred.t()
+   
+        correct = pred.eq(target.view(1, -1).expand_as(pred))
+   
+        res = []
+   
+        for k in topk:
+            correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
+            res.append(correct_k.mul_(100.0 / batch_size))
+        return res

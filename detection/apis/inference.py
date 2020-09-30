@@ -2,12 +2,13 @@ import sys
 import torch
 import torch.nn as nn
 import numpy as np
-from torchvision.ops import nms
+
 #for unit testing
 sys.path.append('/home/ncai/RoadSurfaceAnalysis/src')
 from detection.models.builder import build_detector
 from detection.models.detectors.base import BaseDetector
 from detection.utils.config import *
+from detection.models.utils.utils import non_max_suppression
 def init_detector(cfg_file=None,checkpoint=None):
     """
     Initialize Model. 
@@ -62,8 +63,9 @@ def inference_detector(detector,img):
             with torch.no_grad():
                 output = detector(img)
                 #Apply non-max suppression
-                
-                nms(output,torch.tensor(CONFIDENCE_THRESHOLD),NMS_THRESHOLD)
+                output = torch.squeeze(output)
+                bbox = non_max_suppression(output,CONFIDENCE_THRESHOLD)
+                #Create function to visualize bounding boxes
         else:
             raise TypeError(f'Input should be an Image of type np.ndarry or torch.Tensor')
         #

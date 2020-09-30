@@ -1,7 +1,7 @@
 import numpy as np
-
+from torchvision.ops import nms
 # Also write implementation in cuda c++ for optimization.
-def non_max_suppression():
+def non_max_suppression(output , confidence_threshold):
     """
     Applies Non Max suppression on the number of predicted boxes.
     https://link.springer.com/chapter/10.1007/978-3-642-17688-3_41
@@ -10,9 +10,13 @@ def non_max_suppression():
     Returns:
         bbox(tensor) : 
     """
-    
+    bboxes = output[...,:4]
+    prediction_score = output[...,4]
+    #squeeze prediction_score tensor
+    final_results = nms(bboxes,prediction_score,confidence_threshold)
+    return final_results
 # Also write implementation in cuda c++ for optimization.
-def intersection_over_union():
+def intersection_over_union(bbox1,bbox2,x1y1x2y2):
     """
     Calculate intersection over union (overlap) between target and 
     predicted bounding boxes.
@@ -22,16 +26,17 @@ def intersection_over_union():
     Returns:
         iou(tensor) : intersection over union.
     """
+    #Add faster RCNN implementation here.
     if not x1y1x2y2:
         # Transform from center and width to exact coordinates
-        b1_x1, b1_x2 = box1[:, 0] - box1[:, 2] / 2, box1[:, 0] + box1[:, 2] / 2
-        b1_y1, b1_y2 = box1[:, 1] - box1[:, 3] / 2, box1[:, 1] + box1[:, 3] / 2
-        b2_x1, b2_x2 = box2[:, 0] - box2[:, 2] / 2, box2[:, 0] + box2[:, 2] / 2
-        b2_y1, b2_y2 = box2[:, 1] - box2[:, 3] / 2, box2[:, 1] + box2[:, 3] / 2
+        b1_x1, b1_x2 = bbox1[:, 0] - bbox1[:, 2] / 2, bbox1[:, 0] + bbox1[:, 2] / 2
+        b1_y1, b1_y2 = bbox1[:, 1] - bbox1[:, 3] / 2, bbox1[:, 1] + bbox1[:, 3] / 2
+        b2_x1, b2_x2 = bbox2[:, 0] - bbox2[:, 2] / 2, bbox2[:, 0] + bbox2[:, 2] / 2
+        b2_y1, b2_y2 = bbox2[:, 1] - bbox2[:, 3] / 2, bbox2[:, 1] + bbox2[:, 3] / 2
     else:
         # Get the coordinates of bounding boxes
-        b1_x1, b1_y1, b1_x2, b1_y2 = box1[:, 0], box1[:, 1], box1[:, 2], box1[:, 3]
-        b2_x1, b2_y1, b2_x2, b2_y2 = box2[:, 0], box2[:, 1], box2[:, 2], box2[:, 3]
+        b1_x1, b1_y1, b1_x2, b1_y2 = bbox1[:, 0], bbox1[:, 1], bbox1[:, 2], bbox1[:, 3]
+        b2_x1, b2_y1, b2_x2, b2_y2 = bbox2[:, 0], bbox2[:, 1], bbox2[:, 2], bbox2[:, 3]
 
     # get the corrdinates of the intersection rectangle
     inter_rect_x1 = torch.max(b1_x1, b2_x1)

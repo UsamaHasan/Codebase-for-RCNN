@@ -19,6 +19,24 @@ def activation_layer(func:str):
     except Exception:
         raise Exception('Error while initializing Activation Layer')
 
+
+def conv3x3(in_channels,out_channels,stride=1,dilation=1,groups=1):
+    """
+    Conv3*3 
+    """
+    return nn.Conv2d(in_channels,out_channels,3,stride,padding=dilation,\
+        dilation=dilation ,groups=groups,bias=True)
+
+def conv1x1(in_channels,out_channels,stride):
+    """
+    Conv1*1
+    """
+    return nn.Conv2d(in_channels,out_channels,1,stride,bias=True)
+
+
+
+
+
 def conv2d_layer(input_channels:int,dict_:dict) -> nn.Conv2d:
     """
     retruns conv2d layer object.

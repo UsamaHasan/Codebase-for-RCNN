@@ -1,17 +1,10 @@
 import torch.nn as nn
 import torch
-def conv3x3(in_channels,out_channels,stride=1,dilation=1,groups=1):
-    """
-    Conv3*3 
-    """
-    return nn.Conv2d(in_channels,out_channels,3,stride,padding=dilation,\
-        dilation=dilation ,groups=groups,bias=True)
+sys.path.append('/home/ncai/RoadSurfaceAnalysis/src')
+from detection.models.utils.net_utils import conv1x1 , conv3x3
 
-def conv1x1(in_channels,out_channels,stride):
-    """
-    Conv1*1
-    """
-    return nn.Conv2d(in_channels,out_channels,1,stride,bias=True)
+model_dict = []
+
 
 class Basicblock(nn.Module):
     """
@@ -103,7 +96,10 @@ class Resnet(nn.Module):
         self.conv1 = nn.Conv2d(3,self.inplanes,7,stride=2,padding=3,bias=False)
         self.bn1 = norm_layer(self.inplanes)
         self.relu = nn.ReLU(True)
-
+        self.block1 = self.residual_block(block,64,layers[0])
+        self.block2 = self.residual_block(block,128,layers[1],stride=2)
+        self.block3 = self.residual_block(block,256,layers[2],stride=2)
+        self.block4 = self.residual_block(block,512,layers[3],stride=2)
     def residual_block(self,block,planes,blocks,stride=1):
         """
         """
@@ -120,15 +116,18 @@ class Resnet(nn.Module):
         self.inplanes = planes * block.expansion
         for i in range(0,blocks):
             layers.append(block(self.inplanes,planes,stride,downsample,groups=self.groups,base_width=self.base_width))
-    def _resnet(block,planes,blocks,pretrained,**kwargs):
+    def _resnet(arch,block,blocks,pretrained,**kwargs):
         """"""
-        model = Resnet()
-        pass
+        model = Resnet(block,blocks,**kwargs)
+        if pretrained:
+            model.load_state_dict(model_dict[arch])
+        
 
-    def resnet18():
+    def resnet18(pretrained=False,progress=True,**kwargs):
         """
         """
-        pass
+        model = _resnet('resnet18',BasicBlock,[2,2,2,2],pretrained,progress)
+        return model
     def resnet34():
         """
         """

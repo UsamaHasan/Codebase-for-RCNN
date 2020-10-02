@@ -69,3 +69,11 @@ def build_targets(pred_bbox,target_bbox,anchors,pred_classes,confidence_threshol
         final_pred_bbox(tensor):
     """
     raise NotImplementedError(f'functionality not implemented')
+
+def load_state_dict_from_url(url):
+    """
+
+    """
+    #First download the state file from url.
+    #Then call torch.load to load the .pth/.pt file and load 
+    pass

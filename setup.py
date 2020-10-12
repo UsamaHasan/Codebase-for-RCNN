@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="Code-Base for RCNN-UsamaHasan", # Replace with your own username
+    name="cbrcnn", # Replace with your own username
     version="0.0.1",
     author="Usama Hasan",
     author_email="usamahasan72@gmail.com",

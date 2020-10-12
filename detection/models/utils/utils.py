@@ -1,5 +1,7 @@
 import numpy as np
 from torchvision.ops import nms
+import matplotlib.pyplot as plt
+
 # Also write implementation in cuda c++ for optimization.
 def non_max_suppression(output , confidence_threshold):
     """
@@ -77,3 +79,31 @@ def load_state_dict_from_url(url):
     #First download the state file from url.
     #Then call torch.load to load the .pth/.pt file and load 
     pass
+
+
+
+def draw_bbox(img,detection):
+
+    detections = rescale_boxes(detections, img.shape[1], img.shape[:2])
+    unique_labels = detections[:, -1].cpu().unique()
+    n_cls_preds = len(unique_labels)
+    bbox_colors = random.sample(colors, n_cls_preds)
+    for x1, y1, x2, y2, conf, cls_conf, cls_pred in detections:
+        
+        box_w = x2 - x1
+        box_h = y2 - y1
+
+        color = bbox_colors[int(np.where(unique_labels == int(cls_pred))[0])]
+        # Create a Rectangle patch
+        bbox = patches.Rectangle((x1, y1), box_w, box_h, linewidth=2, edgecolor=color, facecolor="none")
+        # Add the bbox to the plot
+        ax.add_patch(bbox)
+        # Add label
+        plt.text(
+            x1,
+            y1,
+            s=classes[int(cls_pred)],
+            color="white",
+            verticalalignment="top",
+            bbox={"color": color, "pad": 0},
+        )

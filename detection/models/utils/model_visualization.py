@@ -14,7 +14,6 @@ def viz(var, params):
             require grad (TODO: make optional)
     """
     param_map = {id(v): k for k, v in params.items()}
-    print(param_map)
     
     node_attr = dict(style='filled',
                      shape='box',

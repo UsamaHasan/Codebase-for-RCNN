@@ -8,7 +8,7 @@ sys.path.append('/home/ncai/RoadSurfaceAnalysis/src')
 from detection.models.builder import build_detector
 from detection.models.detectors.base import BaseDetector
 from detection.utils.config import *
-from detection.models.utils.utils import non_max_suppression
+from detection.models.utils.utils import non_max_suppression , draw_bbox
 def init_detector(cfg_file=None,checkpoint=None):
     """
     Initialize Model. 
@@ -59,13 +59,19 @@ def inference_detector(detector,img):
                 #make channel first.
                 img = img.permute(2,0,1)
             #append batch_size:
-            img = img.view(1,img.size(0),img.size(1),img.size(2))
+            img = torch.unsqueeze(img,0)
+            
             with torch.no_grad():
-                output = detector(img)
+                detections = detector(img)
                 #Apply non-max suppression
-                output = torch.squeeze(output)
+                
+                detections = torch.squeeze(detections)
                 bbox = non_max_suppression(output,CONFIDENCE_THRESHOLD)
-                #Create function to visualize bounding boxes
+            
+                #Create function to draw bounding boxes
+                draw_bbox(img,detection) 
+                              
+                return draw_bbox
         else:
             raise TypeError(f'Input should be an Image of type np.ndarry or torch.Tensor')
         #
@@ -77,5 +83,5 @@ if __name__ == '__main__':
 
     detector = init_detector('/home/ncai/RoadSurfaceAnalysis/src/cfg/yolov3.cfg',\
         checkpoint='/home/ncai/RoadSurfaceAnalysis/src/weights/yolov3_3300.weights')
-    inp = torch.randn((3,416,416),device='cuda')
-    inference_detector(detector,inp)
+    input = torch.randn((3,416,416),device='cuda')
+    out   = inference_detector(detector,input)

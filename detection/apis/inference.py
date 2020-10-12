@@ -4,7 +4,7 @@ import torch.nn as nn
 import numpy as np
 
 #for unit testing
-sys.path.append('/home/ncai/RoadSurfaceAnalysis/src')
+#sys.path.append('/home/ncai/RoadSurfaceAnalysis/src')
 from detection.models.builder import build_detector
 from detection.models.detectors.base import BaseDetector
 from detection.utils.config import *

@@ -1,5 +1,5 @@
 import sys
-sys.path.append('/home/ncai01/Codebase-of-RCNN')
+#sys.path.append('/home/ncai01/Codebase-of-RCNN')
 from detection.models.detectors import *
 from importlib import import_module
 from detection.utils.utils import parse_path
@@ -20,7 +20,3 @@ def build_detector(cfg_file):
         return detector 
     else:
         raise TypeError('Should provide path to cfg file')
-
-# for unit testing.
-if __name__ == '__main__':
-    build_detector('/home/ncai01/Codebase-of-RCNN/cfg/yolov3.cfg')

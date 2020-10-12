@@ -5,7 +5,7 @@ import torch.nn as nn
 from torch import Tensor
 
 #for unit testing remove after first build.
-sys.path.append('/home/ncai/RoadSurfaceAnalysis/src')
+#sys.path.append('/home/ncai/RoadSurfaceAnalysis/src')
 from detection.models.detectors.base import BaseDetector
 from detection.utils.config import *
 from detection.models.utils.model_visualization import viz
@@ -127,14 +127,3 @@ class Yolov3(BaseDetector):
         """
         """
         raise NotImplementedError
-
-# For unit testing .
-if __name__ == '__main__':
-    
-    net = Yolov3()
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    net.to(device)
-    net.load_weights('/home/ncai/RoadSurfaceAnalysis/src/weights/yolov3_3300.weights')
-    inp = torch.randn(size=(1,3,416,416),device='cuda')
-    output = net(inp)
-    print(output.shape)

@@ -2,6 +2,12 @@ __pycache__/
 .vscode/
 weights/
 
+
+#Temporary
+opencv-master/
+opencv.zip
+
+
 # Distribution / packaging
 .Python
 build/

@@ -3,4 +3,11 @@ import cv2
 
 
 def video_to_frame(path):
-     = cv2.VideoCaptures(path)
+    list_frame = []
+    cap = cv2.VideoCapture(path)
+
+    while(cap.isOpened()):
+        ret, frame = cap.read()
+        list_frame.append(frame)
+
+    return list_frame

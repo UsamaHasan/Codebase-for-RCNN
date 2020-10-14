@@ -10,6 +10,8 @@ from detection.models.detectors.base import BaseDetector
 from detection.utils.config import *
 from detection.models.utils.model_visualization import viz
 from detection.utils.config import *
+import warnings
+
 class Yolov3(BaseDetector):
     """
     Implementation of YOLO model for object detection also known as darknet.
@@ -63,11 +65,14 @@ class Yolov3(BaseDetector):
         yolo_output = (torch.cat(yolo_output,1)).to('cpu')
         return yolo_output if targets is None else (yolo_output,loss)
         #should raise not Implemented error
+    
     def load_weights(self,weight_file):
         """
+        YOLO Legacy function to load weights from .weights file.
         Args:
             weight_file(str) : path to weight file
         """
+        warnings.warn('load_weights is going to be shifted to Legacy yolo version')
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         idx = 0
         if isinstance(weight_file,str):
@@ -114,11 +119,7 @@ class Yolov3(BaseDetector):
         else:                   
             raise TypeError(f'Should be str object')
 
-    def _init_model(self):
-        """
-        private function to initialize model after cfg has initialized.
-        """
-        pass
+    
     def forward_train(self):
         """
         """
@@ -127,3 +128,9 @@ class Yolov3(BaseDetector):
         """
         """
         raise NotImplementedError
+
+if __name__ == '__main__':
+    yolov3 = Yolov3('/home/ncai01/Codebase-of-RCNN/cfg/yolov3.cfg')
+    inp = torch.rand(size=(1,3,416,416))
+    output = yolov3(inp)
+    

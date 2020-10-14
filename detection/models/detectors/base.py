@@ -36,6 +36,7 @@ class BaseDetector(nn.Module,metaclass=ABCMeta):
         Returns:
             nn.ModuleList
         """
+        Warning.warn('This function will be shifted to yolov3 legacy implementation.')
         if(isinstance(cfg,str)):
             cfg_list = parse_model_config(cfg)
         elif(isinstance(cfg,list)):
@@ -126,5 +127,6 @@ class BaseDetector(nn.Module,metaclass=ABCMeta):
     def save_weights():
         """
         Save weights of the model after checkpoints during training. 
+        Should be generic for all classes that are inherited from BaseDetector.
         """
         pass

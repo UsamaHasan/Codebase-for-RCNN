@@ -12,7 +12,7 @@ class Basicblock(nn.Module):
     """
     expansion = 1
     def __init__(self,in_channel,out_channel,stride=1,downsample=None,groups=1,norm_layer=None,\
-        ,dilation=1,base_width=64):
+        dilation=1,base_width=64):
 
         super(BasicBlock,self).__init__()
         if groups!= 1 or base_width!=64:
@@ -75,7 +75,7 @@ class BottleNeck(nn.Module):
 
 class Resnet(nn.Module):
     def __init__(self,block,layers,num_classes=1000,zero_init_residual=False,groups=1,\
-        width_per_group=64,norm_layer):
+        width_per_group=64,norm_layer=None):
         """
         Args:
             block(BasicBlock/BottleNeck) : Type of residual block to be appended in the network.

@@ -33,10 +33,6 @@ def conv1x1(in_channels,out_channels,stride):
     """
     return nn.Conv2d(in_channels,out_channels,1,stride,bias=True)
 
-
-
-
-
 def conv2d_layer(input_channels:int,dict_:dict) -> nn.Conv2d:
     """
     retruns conv2d layer object.

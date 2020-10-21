@@ -2,6 +2,10 @@ __pycache__/
 .vscode/
 weights/
 
+#For weights file
+*.pth
+*.pt
+*.weights
 
 #Temporary
 opencv-master/

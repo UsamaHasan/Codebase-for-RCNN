@@ -124,36 +124,35 @@ class Resnet(nn.Module):
         pass
     
 def _resnet(arch,block,blocks,pretrained,**kwargs):
-    """"""
+    """
+    """
     model = Resnet(block,blocks,**kwargs)
     if pretrained:
         model.load_state_dict(model_dict[arch])
-    
+    return model
 
 def resnet18(pretrained=False,progress=True,**kwargs):
     """
     """
-    model = _resnet('resnet18',BasicBlock,[2,2,2,2],pretrained,progress)
+    model = _resnet('resnet18',BasicBlock,[2,2,2,2],pretrained,progress,**kwargs)
     return model
-def resnet34():
+def resnet34(pretrained=False,progress=True,**kwargs):
     """
     """
-    pass
-def resnet50():
+    model = _resnet('resnet34',Basicblock,[3,4,6,3],pretrained,progress,**kwargs)
+    return model
+def resnet50(pretrained=False,progress=True,**kwargs):
     """
     """
-    pass
-def resnet101():
+    model = _resnet('resnet50',BottleNeck,[3,4,6,3],pretrained,progress,**kwargs)
+    return model
+def resnet101(pretrained=False,progress=True,**kwargs):
     """
     """
-    pass
-def resnet152():
+    model = _resnet('resnet101',BottleNeck,[3,4,23,3],pretrained,progress,**kwargs)
+def resnet152(pretrained=False,progress=True,**kwargs):
     """
     """        
-    pass
-if __name__ == '__main__':
-    
-    pass
-
+    model = _resnet('resnet152',BottleNeck,[3,8,36,3],pretrained,progress,**kwargs)
 
 

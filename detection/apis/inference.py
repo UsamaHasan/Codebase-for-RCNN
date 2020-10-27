@@ -53,7 +53,7 @@ def inference_detector(detector,img):
             #check if the img is numpy array.
             if isinstance(img,np.ndarray):
                 #convert it into torch.tensor
-                torch.from_numpy(img)
+                img = torch.from_numpy(img)
             #check for channel first.
             if img.size(0) not in [3]:
                 #make channel first.

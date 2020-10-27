@@ -1,7 +1,7 @@
 import numpy as np
 from torchvision.ops import nms
 import matplotlib.pyplot as plt
-
+import cv2
 # Also write implementation in cuda c++ for optimization.
 def non_max_suppression(output , confidence_threshold):
     """
@@ -84,18 +84,18 @@ def load_state_dict_from_url(url):
 
 def draw_bbox(img,detection):
     """
+    This functions draws the rectangular boxes on the detected area and returns a list containing
+    
     """
     detections = rescale_boxes(detections, img.shape[1], img.shape[:2])
     unique_labels = detections[:, -1].cpu().unique()
     n_cls_preds = len(unique_labels)
     bbox_colors = random.sample(colors, n_cls_preds)
     for x1, y1, w, h, conf, cls_conf, cls_pred in detections:
-
-        color = bbox_colors[int(np.where(unique_labels == int(cls_pred))[0])]
-        # Create a Rectangle patch
-        bbox = patches.Rectangle((x1, y1), w, h, linewidth=2, edgecolor=color, facecolor="none")
-        # Add the bbox to the plot
-        ax.add_patch(bbox)
+        img = cv2.rectangle(img,(x1,y1),(x1+w,y1+h))
+        return [img,conf,cls_conf,cls_pred] 
+        #draw boxes with opencv over here.
+        #continue
 
 def rescale_boxes(detections,width,height):
     

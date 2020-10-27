@@ -83,27 +83,32 @@ def load_state_dict_from_url(url):
 
 
 def draw_bbox(img,detection):
-
+    """
+    """
     detections = rescale_boxes(detections, img.shape[1], img.shape[:2])
     unique_labels = detections[:, -1].cpu().unique()
     n_cls_preds = len(unique_labels)
     bbox_colors = random.sample(colors, n_cls_preds)
-    for x1, y1, x2, y2, conf, cls_conf, cls_pred in detections:
-        
-        box_w = x2 - x1
-        box_h = y2 - y1
+    for x1, y1, w, h, conf, cls_conf, cls_pred in detections:
 
         color = bbox_colors[int(np.where(unique_labels == int(cls_pred))[0])]
         # Create a Rectangle patch
-        bbox = patches.Rectangle((x1, y1), box_w, box_h, linewidth=2, edgecolor=color, facecolor="none")
+        bbox = patches.Rectangle((x1, y1), w, h, linewidth=2, edgecolor=color, facecolor="none")
         # Add the bbox to the plot
         ax.add_patch(bbox)
-        # Add label
-        plt.text(
-            x1,
-            y1,
-            s=classes[int(cls_pred)],
-            color="white",
-            verticalalignment="top",
-            bbox={"color": color, "pad": 0},
-        )
+
+def rescale_boxes(detections,width,height):
+    
+    if isinstance(detections,torch.Tensor):
+        detections = detections.detach().numpy()
+    
+    #rescale boxes to original image width and height.
+    detections = detections[:,0:4] * np.array([width,height,width,height])
+
+    # Yolo returns box coordinates as center X, center Y and width height for each box
+    # x1 = centerx - width/2
+    detections[:,0] = detections[:,0] - detections[:,2]/2
+    # y1 = centery - height/2
+    detections[:,1] = detections[:,1] - detections[:,3]/2
+
+    return detections

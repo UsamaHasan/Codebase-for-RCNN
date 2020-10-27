@@ -47,13 +47,13 @@ def inference_detector(detector,img):
     Returns:
         output(np.ndarray): 
     """
-    
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     if isinstance(detector,(BaseDetector,nn.Module)):
         if isinstance(img,(torch.Tensor,np.ndarray)):
             #check if the img is numpy array.
             if isinstance(img,np.ndarray):
                 #convert it into torch.tensor
-                img = torch.from_numpy(img)
+                img = torch.from_numpy(img).float().to(device)
             #check for channel first.
             if img.size(0) not in [3]:
                 #make channel first.
@@ -66,12 +66,12 @@ def inference_detector(detector,img):
                 #Apply non-max suppression
                 
                 detections = torch.squeeze(detections)
-                bbox = non_max_suppression(output,CONFIDENCE_THRESHOLD)
+                bbox = non_max_suppression(detections,CONFIDENCE_THRESHOLD)
             
                 #Create function to draw bounding boxes
-                draw_bbox(img,detection) 
+                output =  draw_bbox(img,bbox) 
                               
-                return draw_bbox
+                return output
         else:
             raise TypeError(f'Input should be an Image of type np.ndarry or torch.Tensor')
         #

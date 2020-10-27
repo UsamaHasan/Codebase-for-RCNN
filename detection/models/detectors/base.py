@@ -8,7 +8,7 @@ from detection.models.utils.net_utils import *
 from detection.utils.utils import parse_model_config
 from detection.utils.config import *
 from abc import ABCMeta, abstractmethod
-
+import warnings
 class BaseDetector(nn.Module,metaclass=ABCMeta):
     """
     A base class for all the RCNN frameworks. The base class will load all the
@@ -36,7 +36,7 @@ class BaseDetector(nn.Module,metaclass=ABCMeta):
         Returns:
             nn.ModuleList
         """
-        Warning.warn('This function will be shifted to yolov3 legacy implementation.')
+        warnings.warn('This function will be shifted to yolov3 legacy implementation.')
         if(isinstance(cfg,str)):
             cfg_list = parse_model_config(cfg)
         elif(isinstance(cfg,list)):

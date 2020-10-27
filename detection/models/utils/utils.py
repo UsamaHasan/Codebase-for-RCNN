@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 from torchvision.ops import nms
 import matplotlib.pyplot as plt
 import cv2
@@ -82,7 +83,7 @@ def load_state_dict_from_url(url):
 
 
 
-def draw_bbox(img,detection):
+def draw_bbox(img,detections):
     """
     This functions draws the rectangular boxes on the detected area and returns a list containing
     

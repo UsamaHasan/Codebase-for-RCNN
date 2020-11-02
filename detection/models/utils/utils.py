@@ -86,7 +86,7 @@ def load_state_dict_from_url(url):
 def draw_bbox(img,detections):
     """
     This functions draws the rectangular boxes on the detected area and returns a list containing
-    
+
     """
     detections = rescale_boxes(detections, img.shape[1], img.shape[:2])
     unique_labels = detections[:, -1].cpu().unique()

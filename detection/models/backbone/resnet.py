@@ -150,9 +150,10 @@ def resnet101(pretrained=False,progress=True,**kwargs):
     """
     """
     model = _resnet('resnet101',BottleNeck,[3,4,23,3],pretrained,progress,**kwargs)
+    return model
 def resnet152(pretrained=False,progress=True,**kwargs):
     """
     """        
     model = _resnet('resnet152',BottleNeck,[3,8,36,3],pretrained,progress,**kwargs)
-
+    return model
 

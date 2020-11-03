@@ -180,7 +180,8 @@ class YoloLayer(nn.Module):
         self.anchors_h = self.scaled_anchors[:,1:2].view((1,self.num_anchors,1,1))
         
     def forward(self,x,targets,input_dim):
-        
+        """
+        """
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
         batch_size = x.size(0) #batch_size
@@ -209,6 +210,7 @@ class YoloLayer(nn.Module):
         pred_boxes[...,2] = torch.exp(width) + self.anchors_w # (batch_size , anchors , grid_size , grid_size)
         pred_boxes[...,3] = torch.exp(hegith) + self.anchors_h # (batch_size , anchors , grid_size , grid_size)
         
+        print(self.anchors_h)
         #Concat the tensor of predicted bboxes , confidence and class 
         output =  torch.cat(
             [pred_boxes.view(batch_size,-1,4) , pred_confidence.view(batch_size,-1,1)\

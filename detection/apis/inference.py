@@ -3,8 +3,6 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-#for unit testing
-#sys.path.append('/home/ncai/RoadSurfaceAnalysis/src')
 from detection.models.builder import build_detector
 from detection.models.detectors.base import BaseDetector
 from detection.utils.config import *
@@ -29,7 +27,7 @@ def init_detector(cfg_file=None,checkpoint=None):
         #check for avaiable devices
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         model.to(device)
-        #comment for git push
+        
         #set model on evaluation mode.0
         model.eval()
         
@@ -66,9 +64,12 @@ def inference_detector(detector,img):
                 #Apply non-max suppression
                 
                 detections = torch.squeeze(detections)
+                #This function is currently broken and is causing strange behaviour 
+                # you can check the function implementation for further clarificiation.
                 bbox = non_max_suppression(detections,CONFIDENCE_THRESHOLD)
             
                 #Create function to draw bounding boxes
+                
                 output =  draw_bbox(img,bbox) 
                               
                 return output

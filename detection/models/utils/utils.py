@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from torchvision.ops import nms
 import matplotlib.pyplot as plt
-import cv2
+#import cv2
 # Also write implementation in cuda c++ for optimization.
 def non_max_suppression(output , confidence_threshold):
     """
@@ -17,6 +17,9 @@ def non_max_suppression(output , confidence_threshold):
     prediction_score = output[...,4]
     #squeeze prediction_score tensor
     final_results = nms(bboxes,prediction_score,confidence_threshold)
+    # torchvision.ops.nms return a list of box arrange in a descending order of there confidence score.
+    # this line is causing the current behaviour either we replace this with our own implementation of
+    # nms or select the first 200 out of them.
     return final_results
 # Also write implementation in cuda c++ for optimization.
 def intersection_over_union(bbox1,bbox2,x1y1x2y2):
@@ -93,7 +96,7 @@ def draw_bbox(img,detections):
     n_cls_preds = len(unique_labels)
     bbox_colors = random.sample(colors, n_cls_preds)
     for x1, y1, w, h, conf, cls_conf, cls_pred in detections:
-        img = cv2.rectangle(img,(x1,y1),(x1+w,y1+h))
+    #    img = cv2.rectangle(img,(x1,y1),(x1+w,y1+h))
         return [img,conf,cls_conf,cls_pred] 
         #draw boxes with opencv over here.
         #continue

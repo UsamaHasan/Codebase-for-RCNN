@@ -82,7 +82,7 @@ def inference_detector(detector,img):
 # for unit testing.
 if __name__ == '__main__':
 
-    detector = init_detector('/home/ncai/RoadSurfaceAnalysis/src/cfg/yolov3.cfg',\
-        checkpoint='/home/ncai/RoadSurfaceAnalysis/src/weights/yolov3_3300.weights')
+    detector = init_detector('/home/ncai01/Codebase-of-RCNN/cfg/yolov3.cfg',\
+        checkpoint='/home/ncai01/Codebase-of-RCNN/weights/yolov3-obj_17400.weights')
     input = torch.randn((3,416,416),device='cuda')
     out   = inference_detector(detector,input)

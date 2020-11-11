@@ -20,6 +20,7 @@ def non_max_suppression(output , confidence_threshold):
     # torchvision.ops.nms return a list of box arrange in a descending order of there confidence score.
     # this line is causing the current behaviour either we replace this with our own implementation of
     # nms or select the first 200 out of them.
+    final_results = final_results[:200]
     return final_results
 # Also write implementation in cuda c++ for optimization.
 def intersection_over_union(bbox1,bbox2,x1y1x2y2):

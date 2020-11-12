@@ -2,7 +2,7 @@ import sys
 import torch
 import torch.nn as nn
 import numpy as np
-
+from PIL import Image
 from detection.models.builder import build_detector
 from detection.models.detectors.base import BaseDetector
 from detection.utils.config import *
@@ -47,13 +47,16 @@ def inference_detector(detector,img):
     """
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     if isinstance(detector,(BaseDetector,nn.Module)):
-        if isinstance(img,(torch.Tensor,np.ndarray)):
+        if isinstance(img,(torch.Tensor,np.ndarray,Image.Image)):
+            #Check for PIL Image.
+            if isinstance(img,Image.Image):
+                img = np.asarray(img)
             #check if the img is numpy array.
             if isinstance(img,np.ndarray):
                 #convert it into torch.tensor
                 img = torch.from_numpy(img).float().to(device)
             #check for channel first.
-            if img.size(0) not in [3]:
+            if img.size(0) not in [3,2,1]:
                 #make channel first.
                 img = img.permute(2,0,1)
             #append batch_size:
@@ -66,10 +69,10 @@ def inference_detector(detector,img):
                 detections = torch.squeeze(detections)
                 #This function is currently broken and is causing strange behaviour 
                 # you can check the function implementation for further clarificiation.
+                # Update the function according to 
                 bbox = non_max_suppression(detections,CONFIDENCE_THRESHOLD)
-            
-                #Create function to draw bounding boxes
                 
+                #Create function to draw bounding boxes
                 output =  draw_bbox(img,bbox) 
                               
                 return output
@@ -84,5 +87,8 @@ if __name__ == '__main__':
 
     detector = init_detector('/home/ncai01/Codebase-of-RCNN/cfg/yolov3.cfg',\
         checkpoint='/home/ncai01/Codebase-of-RCNN/weights/yolov3-obj_17400.weights')
-    input = torch.randn((3,416,416),device='cuda')
-    out   = inference_detector(detector,input)
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    #input = torch.randn((3,416,416),device=device)
+    img = Image.open('/home/ncai01/Downloads/Chiba_20170913105752.jpg')
+    img = img.resize((416,416))
+    out   = inference_detector(detector,img)

@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 # Also write implementation in cuda c++ for optimization.
 def non_max_suppression(output , confidence_threshold):
     """
-    Applies Non Max suppression on the number of predicted boxes.
-    https://link.springer.com/chapter/10.1007/978-3-642-17688-3_41
+    Applies Greedy Non Max suppression on the number of predicted boxes.
+    
     Args:
         pred_bbox(tensor) : 
     Returns:
@@ -15,13 +15,17 @@ def non_max_suppression(output , confidence_threshold):
     """
     bboxes = output[...,:4]
     prediction_score = output[...,4]
+    print(bboxes)
     #squeeze prediction_score tensor
     final_results = nms(bboxes,prediction_score,confidence_threshold)
     # torchvision.ops.nms return a list of box arrange in a descending order of there confidence score.
     # this line is causing the current behaviour either we replace this with our own implementation of
     # nms or select the first 200 out of them.
-    final_results = final_results[:200]
-    return final_results
+    # Select top 200.
+  #  print(final_results.shape)
+    final_results = final_results[:2]
+    results = bboxes[final_results]
+    return results
 # Also write implementation in cuda c++ for optimization.
 def intersection_over_union(bbox1,bbox2,x1y1x2y2):
     """
@@ -108,6 +112,7 @@ def rescale_boxes(detections,width,height):
         detections = detections.detach().numpy()
     
     #rescale boxes to original image width and height.
+    
     detections = detections[:,0:4] * np.array([width,height,width,height])
 
     # Yolo returns box coordinates as center X, center Y and width height for each box

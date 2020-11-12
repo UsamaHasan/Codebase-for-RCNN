@@ -210,7 +210,6 @@ class YoloLayer(nn.Module):
         pred_boxes[...,2] = torch.exp(width) + self.anchors_w # (batch_size , anchors , grid_size , grid_size)
         pred_boxes[...,3] = torch.exp(hegith) + self.anchors_h # (batch_size , anchors , grid_size , grid_size)
         
-        print(self.anchors_h)
         #Concat the tensor of predicted bboxes , confidence and class 
         output =  torch.cat(
             [pred_boxes.view(batch_size,-1,4) , pred_confidence.view(batch_size,-1,1)\

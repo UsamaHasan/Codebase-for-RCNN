@@ -75,51 +75,54 @@ class Yolov3(BaseDetector):
         warnings.warn('load_weights is going to be shifted to Legacy yolo version')
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         idx = 0
-        if isinstance(weight_file,str):
-            with open(weight_file,'rb') as w:
-                #header = np.fromfile(w,count=5)
-                weights = np.fromfile(w,dtype=np.float32)
 
-            for model_dict , module  in zip(self.module_dicts,self.modules_list):
-                if model_dict['type'] in CONVOLUTIONAL:
+        """Parses and loads the weights stored in 'weights_path'"""
+        if isinstance(weight_file,str):
+            # Open the weights file
+            with open(weight_file, "rb") as f:
+                header = np.fromfile(f, dtype=np.int32, count=5)  # First five are header values
+                weights = np.fromfile(f, dtype=np.float32)  # The rest are weights
+            
+        
+            ptr = 0
+            for i, (module_def, module) in enumerate(zip(self.module_dicts,self.modules_list)):
+        
+                if module_def["type"] == "convolutional":
                     conv_layer = module[0]
-                    
-                    if model_dict['batch_normalize']:
+                    if module_def["batch_normalize"]:
+                        # Load BN bias, weights, running mean and running variance
                         bn_layer = module[1]
-                        num_bias = bn_layer.bias.numel()
-                        num_weights = bn_layer.weight.numel()
-                        #biases.
-                        bn_biases = torch.from_numpy(weights[idx:idx+num_bias]).view_as(bn_layer.bias)
-                        bn_layer.bias.data.copy_(bn_biases)
-                        idx+=num_bias
-                        #weights
-                        bn_weights = torch.from_numpy(weights[idx:idx+num_weights]).view_as(bn_layer.weight)
+                        num_biases = bn_layer.bias.numel()  # Number of biases
+                        # Bias
+                        bn_bias = torch.from_numpy(weights[ptr : ptr + num_biases]).view_as(bn_layer.bias)
+                        bn_layer.bias.data.copy_(bn_bias)
+                        ptr += num_biases
+                        # Weight
+                        bn_weights = torch.from_numpy(weights[ptr : ptr + num_biases]).view_as(bn_layer.weight)
                         bn_layer.weight.data.copy_(bn_weights)
-                        idx+=num_weights
-                        #Running Mean
-                        bn_mean = torch.from_numpy(weights[idx:idx+num_bias]).view_as(bn_layer.running_mean)
-                        bn_layer.running_mean.data.copy_(bn_mean)
-                        idx+=num_bias
-                        #Running_Variance
-                        bn_variance = torch.from_numpy(weights[idx:idx+num_bias]).view_as(bn_layer.running_var)
-                        bn_layer.running_var.data.copy_(bn_variance)
-                        idx+=num_bias
+                        ptr += num_biases
+                        # Running Mean
+                        bn_runningMean = torch.from_numpy(weights[ptr : ptr + num_biases]).view_as(bn_layer.running_mean)
+                        bn_layer.running_mean.data.copy_(bn_runningMean)
+                        ptr += num_biases
+                        # Running Variance
+                        bn_runningVariance = torch.from_numpy(weights[ptr : ptr + num_biases]).view_as(bn_layer.running_var)
+                        bn_layer.running_var.data.copy_(bn_runningVariance)
+                        ptr += num_biases
                     else:
-                        #Conv_layer biases
-                        num_bias = conv_layer.bias.numel()
-                        conv_bias = torch.from_numpy(weights[idx:idx+num_bias]).view_as(conv_layer.bias)
-                        conv_layer.bias.data.copy_(conv_bias)
-                        idx+=num_bias
-                    
+                        # Load conv. bias
+                        num_biases = conv_layer.bias.numel()
+                        conv_b = torch.from_numpy(weights[ptr : ptr + num_biases]).view_as(conv_layer.bias)
+                        conv_layer.bias.data.copy_(conv_b)
+                        ptr += num_biases
+                    # Load conv. weights
                     num_weights = conv_layer.weight.numel()
-                    conv_weights = torch.from_numpy(weights[idx:idx+num_weights]).view_as(conv_layer.weight)
-                    
+                    conv_weights = torch.from_numpy(weights[ptr : ptr + num_weights]).view_as(conv_layer.weight)
                     conv_layer.weight.data.copy_(conv_weights)
-                    idx+=num_weights
+                    ptr += num_weights
         else:                   
             raise TypeError(f'Should be str object')
-
-    
+     
     def forward_train(self):
         """
         """

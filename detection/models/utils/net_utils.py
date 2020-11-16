@@ -183,7 +183,6 @@ class YoloLayer(nn.Module):
         """
         """
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        
         batch_size = x.size(0) #batch_size
         grid_size = x.size(2)
         prediction = (

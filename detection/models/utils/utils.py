@@ -13,19 +13,38 @@ def non_max_suppression(output , confidence_threshold):
     Returns:
         bbox(tensor) : 
     """
-    bboxes = output[...,:4]
-    prediction_score = output[...,4]
-    print(bboxes)
-    #squeeze prediction_score tensor
-    final_results = nms(bboxes,prediction_score,confidence_threshold)
-    # torchvision.ops.nms return a list of box arrange in a descending order of there confidence score.
-    # this line is causing the current behaviour either we replace this with our own implementation of
-    # nms or select the first 200 out of them.
-    # Select top 200.
-  #  print(final_results.shape)
-    final_results = final_results[:2]
-    results = bboxes[final_results]
-    return results
+    # Have to Implement own NMS
+    output[..., :4] = xywh2xyxy(output[..., :4])
+    output = [None for _ in range(len(output))]
+    for image_i, image_pred in enumerate(output):
+        # Filter out confidence scores below threshold
+        image_pred = image_pred[image_pred[:, 4] >= conf_thres]
+        # If none are remaining => process next image
+        if not image_pred.size(0):
+            continue
+        # Object confidence times class confidence
+        score = image_pred[:, 4] * image_pred[:, 5:].max(1)[0]
+        # Sort by it
+        image_pred = image_pred[(-score).argsort()]
+        class_confs, class_preds = image_pred[:, 5:].max(1, keepdim=True)
+        detections = torch.cat((image_pred[:, :5], class_confs.float(), class_preds.float()), 1)
+        # Perform non-maximum suppression
+        keep_boxes = []
+        while detections.size(0):
+            large_overlap = bbox_iou(detections[0, :4].unsqueeze(0), detections[:, :4]) > nms_thres
+            label_match = detections[0, -1] == detections[:, -1]
+            # Indices of boxes with lower confidence scores, large IOUs and matching labels
+            invalid = large_overlap & label_match
+            weights = detections[invalid, 4:5]
+            # Merge overlapping bboxes by order of confidence
+            detections[0, :4] = (weights * detections[invalid, :4]).sum(0) / weights.sum()
+            keep_boxes += [detections[0]]
+            detections = detections[~invalid]
+        if keep_boxes:
+            output[image_i] = torch.stack(keep_boxes)
+
+
+
 # Also write implementation in cuda c++ for optimization.
 def intersection_over_union(bbox1,bbox2,x1y1x2y2):
     """
@@ -96,10 +115,18 @@ def draw_bbox(img,detections):
     This functions draws the rectangular boxes on the detected area and returns a list containing
 
     """
-    detections = rescale_boxes(detections, img.shape[1], img.shape[:2])
-    unique_labels = detections[:, -1].cpu().unique()
+    if isinstance(img,torch.Tensor):
+        img = img.detach().numpy()
+    if isinstance(detections,torch.Tensor):
+        detections = detections.detach().numpy()
+        
+    detections = rescale_boxes(detections, img.shape[1], img.shape[2])
+    #unique_labels = detections[:, -1].unique()
+    unique_labels = np.unique(detections[:,-1])
     n_cls_preds = len(unique_labels)
-    bbox_colors = random.sample(colors, n_cls_preds)
+    #bbox_colors = random.sample(colors, n_cls_preds)
+
+    #Error detections only contain 4 values 
     for x1, y1, w, h, conf, cls_conf, cls_pred in detections:
     #    img = cv2.rectangle(img,(x1,y1),(x1+w,y1+h))
         return [img,conf,cls_conf,cls_pred] 
@@ -107,18 +134,23 @@ def draw_bbox(img,detections):
         #continue
 
 def rescale_boxes(detections,width,height):
-    
-    if isinstance(detections,torch.Tensor):
-        detections = detections.detach().numpy()
-    
+    """
+    The functions rescales the boxes given as (center_x ,center_y,w,h) and return 
+    rescaled coordinates converted to x1,y1,x2,y2.
+    """
     #rescale boxes to original image width and height.
     
     detections = detections[:,0:4] * np.array([width,height,width,height])
+    return detections
 
+def xywh2xyxy(detections):
     # Yolo returns box coordinates as center X, center Y and width height for each box
     # x1 = centerx - width/2
     detections[:,0] = detections[:,0] - detections[:,2]/2
     # y1 = centery - height/2
     detections[:,1] = detections[:,1] - detections[:,3]/2
-
+    #x2 = x1 + width 
+    detections[:,2] = detections[:,0] + detections[:,2]
+    #y2 = y1 + height
+    detections[:,3] = detections[:,1] + detections[:,3]
     return detections

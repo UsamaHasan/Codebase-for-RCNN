@@ -4,21 +4,20 @@ from torchvision.ops import nms
 import matplotlib.pyplot as plt
 #import cv2
 # Also write implementation in cuda c++ for optimization.
-def non_max_suppression(output , confidence_threshold):
+def non_max_suppression(prediction , confidence_threshold,nms_thres):
     """
-    Applies Greedy Non Max suppression on the number of predicted boxes.
-    
+    NMS Implementation taken from https://github.com/eriklindernoren/PyTorch-YOLOv3/    
     Args:
         pred_bbox(tensor) : 
     Returns:
         bbox(tensor) : 
     """
     # Have to Implement own NMS
-    output[..., :4] = xywh2xyxy(output[..., :4])
-    output = [None for _ in range(len(output))]
-    for image_i, image_pred in enumerate(output):
+    prediction[..., :4] = xywh2xyxy(prediction[..., :4])
+    output = [None for _ in range(len(prediction))]
+    for image_i, image_pred in enumerate(prediction):
         # Filter out confidence scores below threshold
-        image_pred = image_pred[image_pred[:, 4] >= conf_thres]
+        image_pred = image_pred[image_pred[:, 4] >= confidence_threshold]
         # If none are remaining => process next image
         if not image_pred.size(0):
             continue
@@ -41,8 +40,9 @@ def non_max_suppression(output , confidence_threshold):
             keep_boxes += [detections[0]]
             detections = detections[~invalid]
         if keep_boxes:
-            output[image_i] = torch.stack(keep_boxes)
-
+            ouptut[image_i] = torch.stack(keep_boxes)
+    
+    return np.array(output)
 
 
 # Also write implementation in cuda c++ for optimization.
@@ -119,8 +119,8 @@ def draw_bbox(img,detections):
         img = img.detach().numpy()
     if isinstance(detections,torch.Tensor):
         detections = detections.detach().numpy()
-        
-    detections = rescale_boxes(detections, img.shape[1], img.shape[2])
+
+    detections = rescale_boxes(detections, img.shape[2], img.shape[3])
     #unique_labels = detections[:, -1].unique()
     unique_labels = np.unique(detections[:,-1])
     n_cls_preds = len(unique_labels)

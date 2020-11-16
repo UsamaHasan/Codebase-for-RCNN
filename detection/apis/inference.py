@@ -62,21 +62,19 @@ def inference_detector(detector,img):
                 img = img.permute(2,0,1)
             #append batch_size:
             img = torch.unsqueeze(img,0)
+            # This Line needs to be replaced. Further We need to add normalization of input
             img = img/255           
             #breakpoint()
             with torch.no_grad():
                 detections = detector(img)
                 #Apply non-max suppression
+                bbox = non_max_suppression(detections,CONFIDENCE_THRESHOLD,NMS_THRESHOLD)
                 
-                detections = torch.squeeze(detections)
-                #This function is currently broken and is causing strange behaviour 
-                # you can check the function implementation for further clarificiation.
-                # Update the function according to 
-                bbox = non_max_suppression(detections,CONFIDENCE_THRESHOLD)
-                
-                #Create function to draw bounding boxes
-                output =  draw_bbox(img,bbox) 
-                              
+                if None in bbox:
+                    return None 
+                else:
+                    output =  draw_bbox(img,bbox)
+                     
                 return output
         else:
             raise TypeError(f'Input should be an Image of type np.ndarry or torch.Tensor')

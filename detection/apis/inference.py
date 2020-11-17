@@ -60,6 +60,10 @@ def inference_detector(detector,img):
             if img.size(0) not in [3,2,1]:
                 #make channel first.
                 img = img.permute(2,0,1)
+            
+            if img.size(1) != detector.input_height  or img.size(2) != detector.input_width:
+                raise  Exception(f'Input Shape does not match the model input.({detector.input_height},{detector.input_width})')     
+
             #append batch_size:
             img = torch.unsqueeze(img,0)
             # This Line needs to be replaced. Further We need to add normalization of input
@@ -90,5 +94,5 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     #input = torch.randn((3,416,416),device=device)
     img = Image.open('/home/ncai01/Downloads/Chiba_20170913105752.jpg')
-    img = img.resize((416,416))
+    img = img.resize((416,600))
     out   = inference_detector(detector,img)

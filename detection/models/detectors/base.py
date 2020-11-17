@@ -21,7 +21,8 @@ class BaseDetector(nn.Module,metaclass=ABCMeta):
         super(BaseDetector,self).__init__()
         #modules_list will contain all the Sequential modules of model.
         if(cfg != ''):
-            self.modules_list , self.output_filters , self.module_dicts = BaseDetector.model_from_cfg(cfg)
+            self.modules_list , self.output_filters , self.module_dicts , \
+                self.input_height , self.input_width = BaseDetector.model_from_cfg(cfg)
         
     @staticmethod    
     def model_from_cfg(cfg:str) -> nn.ModuleList:
@@ -42,10 +43,13 @@ class BaseDetector(nn.Module,metaclass=ABCMeta):
         elif(isinstance(cfg,list)):
             cfg_list = cfg
         else:
-            return Exception(f"Provide either path to cfg file or it's list")            
+            return Exception(f"Provide either path to cfg file or it's list")          
+        
         modules_list = nn.ModuleList()
         parameters = cfg_list.pop(0)
         output_filter = [int(parameters['channels'])]
+        model_input_height = int(parameters['width'])
+        model_input_width  = int(parameters['height'])
         #check if the list is empty.
         assert(len(cfg_list) > 0)
         # Add all the layers here which cfgs contain.
@@ -95,7 +99,7 @@ class BaseDetector(nn.Module,metaclass=ABCMeta):
             
             except KeyError:
                 raise KeyError(f"Error key {module_dict['type']} not found")
-        return modules_list , output_filter , cfg_list
+        return modules_list , output_filter , cfg_list , model_input_height ,model_input_width
 
     @abstractmethod
     def forward_train(self):

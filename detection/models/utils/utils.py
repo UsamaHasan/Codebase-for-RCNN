@@ -30,7 +30,7 @@ def non_max_suppression(prediction , confidence_threshold,nms_thres):
         # Perform non-maximum suppression
         keep_boxes = []
         while detections.size(0):
-            large_overlap = bbox_iou(detections[0, :4].unsqueeze(0), detections[:, :4]) > nms_thres
+            large_overlap = intersection_over_union(detections[0, :4].unsqueeze(0), detections[:, :4],True) > nms_thres
             label_match = detections[0, -1] == detections[:, -1]
             # Indices of boxes with lower confidence scores, large IOUs and matching labels
             invalid = large_overlap & label_match

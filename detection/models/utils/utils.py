@@ -4,6 +4,7 @@ from torchvision.ops import nms
 import matplotlib.pyplot as plt
 #import cv2
 # Also write implementation in cuda c++ for optimization.
+
 def non_max_suppression(prediction , confidence_threshold,nms_thres):
     """
     NMS Implementation taken from https://github.com/eriklindernoren/PyTorch-YOLOv3/    
@@ -12,12 +13,14 @@ def non_max_suppression(prediction , confidence_threshold,nms_thres):
     Returns:
         bbox(tensor) : 
     """
-    # Have to Implement own NMS
+    
     prediction[..., :4] = xywh2xyxy(prediction[..., :4])
+    
     output = [None for _ in range(len(prediction))]
     for image_i, image_pred in enumerate(prediction):
         # Filter out confidence scores below threshold
         image_pred = image_pred[image_pred[:, 4] >= confidence_threshold]
+        
         # If none are remaining => process next image
         if not image_pred.size(0):
             continue
@@ -30,6 +33,7 @@ def non_max_suppression(prediction , confidence_threshold,nms_thres):
         # Perform non-maximum suppression
         keep_boxes = []
         while detections.size(0):
+            
             large_overlap = intersection_over_union(detections[0, :4].unsqueeze(0), detections[:, :4],True) > nms_thres
             label_match = detections[0, -1] == detections[:, -1]
             # Indices of boxes with lower confidence scores, large IOUs and matching labels
@@ -43,6 +47,17 @@ def non_max_suppression(prediction , confidence_threshold,nms_thres):
             ouptut[image_i] = torch.stack(keep_boxes)
     
     return np.array(output)
+
+def nms(bbox,confidence_threshold,nms_thres):
+    """
+    """
+    bbox = torch.squeeze(bbox)
+    
+    boxes = xywh2xyxy(bbox[:,:4])
+    
+    score = bbox[:, 4] * bbox[:, 5:].max(1)[0]
+    detection = nms(boxes,score,nms_thres)
+    return detection
 
 
 # Also write implementation in cuda c++ for optimization.
@@ -154,3 +169,13 @@ def xywh2xyxy(detections):
     #y2 = y1 + height
     detections[:,3] = detections[:,1] + detections[:,3]
     return detections
+# for unit Testing
+"""
+if __name__ == '__main__':
+    sample = torch.Tensor ([[ 3.6925,  8.8743,  3.0000,  4.7500,  0.9783,  0.9998,  0.0000],
+        [ 3.6925,  8.8743,  3.0000,  4.7500,  0.9531,  0.9998,  0.0000],
+        [ 7.8135, 10.7972,  2.2500,  2.8907,  0.9246,  0.9998,  0.0000],
+        [27.5000, 18.7662,  2.2500,  2.7666,  0.9206,  0.9997,  0.0000],
+        [34.7120, 14.5000,  2.2500,  2.6250,  0.9032,  0.9998,  0.0000]])
+    #non_max_suppression(sample,0.5,0.4)
+"""

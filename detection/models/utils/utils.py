@@ -1,8 +1,7 @@
 import numpy as np
 import torch
 from torchvision.ops import nms
-import matplotlib.pyplot as plt
-#import cv2
+from PIL import Image
 # Also write implementation in cuda c++ for optimization.
 
 def non_max_suppression(prediction , confidence_threshold,nms_thres):
@@ -13,11 +12,6 @@ def non_max_suppression(prediction , confidence_threshold,nms_thres):
     Returns:
         bbox(tensor) : 
     """
-<<<<<<< HEAD
-=======
-    # Have to Implement own NMS
->>>>>>> cf55a6ab110297df34c63789d58eec8f1f4b5d2b
-    
     prediction[..., :4] = xywh2xyxy(prediction[..., :4])
     
     output = [None for _ in range(len(prediction))]
@@ -52,16 +46,19 @@ def non_max_suppression(prediction , confidence_threshold,nms_thres):
     
     return np.array(output)
 
-def nms(bbox,confidence_threshold,nms_thres):
+def non_max(bbox,confidence_threshold,nms_thres):
     """
     """
     bbox = torch.squeeze(bbox)
     
     boxes = xywh2xyxy(bbox[:,:4])
-    
+
     score = bbox[:, 4] * bbox[:, 5:].max(1)[0]
-    detection = nms(boxes,score,nms_thres)
-    return detection
+    indexes = nms(boxes,score,nms_thres)
+    #Select the indexes with heighest ratio from bbox tensor
+    boxes = bbox[indexes]
+    boxes = boxes[boxes[:,4] >= confidence_threshold]
+    return boxes
 
 
 # Also write implementation in cuda c++ for optimization.
@@ -132,25 +129,24 @@ def load_state_dict_from_url(url):
 def draw_bbox(img,detections):
     """
     This functions draws the rectangular boxes on the detected area and returns a list containing
-
     """
     if isinstance(img,torch.Tensor):
-        img = img.detach().numpy()
+        img = img.detach().cpu().numpy()
     if isinstance(detections,torch.Tensor):
-        detections = detections.detach().numpy()
-
+        detections = detections.detach().cpu().numpy()
     detections = rescale_boxes(detections, img.shape[2], img.shape[3])
-    #unique_labels = detections[:, -1].unique()
     unique_labels = np.unique(detections[:,-1])
     n_cls_preds = len(unique_labels)
-    #bbox_colors = random.sample(colors, n_cls_preds)
-
+    img = img*255
+    img = img.reshape(img.shape[2],img.shape[3],img.shape[1])
+    color = (255, 0, 0) 
+    thickness = 2
     #Error detections only contain 4 values 
-    for x1, y1, w, h, conf, cls_conf, cls_pred in detections:
-    #    img = cv2.rectangle(img,(x1,y1),(x1+w,y1+h))
-        return [img,conf,cls_conf,cls_pred] 
-        #draw boxes with opencv over here.
-        #continue
+    for x1, y1, x2, y2, conf, cls_pred in detections:
+        start_point =  (int(x1),int(y1))
+        end_point = (int(x2-x1),int(y2-y1))
+        #img = cv2.rectangle(img,start_point,end_point,color, thickness)
+    return [img,conf,cls_pred] 
 
 def rescale_boxes(detections,width,height):
     """
@@ -159,7 +155,8 @@ def rescale_boxes(detections,width,height):
     """
     #rescale boxes to original image width and height.
     
-    detections = detections[:,0:4] * np.array([width,height,width,height])
+    boxes = detections[:,0:4] * np.array([width,height,width,height])
+    detections = np.concatenate((boxes,detections[:,4:]),axis=1)
     return detections
 
 def xywh2xyxy(detections):
@@ -174,12 +171,3 @@ def xywh2xyxy(detections):
     detections[:,3] = detections[:,1] + detections[:,3]
     return detections
 # for unit Testing
-"""
-if __name__ == '__main__':
-    sample = torch.Tensor ([[ 3.6925,  8.8743,  3.0000,  4.7500,  0.9783,  0.9998,  0.0000],
-        [ 3.6925,  8.8743,  3.0000,  4.7500,  0.9531,  0.9998,  0.0000],
-        [ 7.8135, 10.7972,  2.2500,  2.8907,  0.9246,  0.9998,  0.0000],
-        [27.5000, 18.7662,  2.2500,  2.7666,  0.9206,  0.9997,  0.0000],
-        [34.7120, 14.5000,  2.2500,  2.6250,  0.9032,  0.9998,  0.0000]])
-    #non_max_suppression(sample,0.5,0.4)
-"""

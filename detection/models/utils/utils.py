@@ -13,6 +13,10 @@ def non_max_suppression(prediction , confidence_threshold,nms_thres):
     Returns:
         bbox(tensor) : 
     """
+<<<<<<< HEAD
+=======
+    # Have to Implement own NMS
+>>>>>>> cf55a6ab110297df34c63789d58eec8f1f4b5d2b
     
     prediction[..., :4] = xywh2xyxy(prediction[..., :4])
     

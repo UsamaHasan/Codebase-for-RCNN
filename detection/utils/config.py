@@ -9,4 +9,10 @@ CONVOLUTIONAL = ['convolutional','Convolutional']
 BATCH_NORMALIZATION = ['batch_normalize','Batch_Norm','batch_norm','batch_normalization']
 
 NMS_THRESHOLD = 0.4
-CONFIDENCE_THRESHOLD = 0.8
+CONFIDENCE_THRESHOLD = 0.5  
+
+
+
+
+
+

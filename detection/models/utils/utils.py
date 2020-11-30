@@ -1,63 +1,34 @@
 import numpy as np
 import torch
 from torchvision.ops import nms
-from PIL import Image
+from PIL import Image , ImageDraw
 # Also write implementation in cuda c++ for optimization.
-
-def non_max_suppression(prediction , confidence_threshold,nms_thres):
-    """
-    NMS Implementation taken from https://github.com/eriklindernoren/PyTorch-YOLOv3/    
-    Args:
-        pred_bbox(tensor) : 
-    Returns:
-        bbox(tensor) : 
-    """
-    prediction[..., :4] = xywh2xyxy(prediction[..., :4])
-    
-    output = [None for _ in range(len(prediction))]
-    for image_i, image_pred in enumerate(prediction):
-        # Filter out confidence scores below threshold
-        image_pred = image_pred[image_pred[:, 4] >= confidence_threshold]
-        
-        # If none are remaining => process next image
-        if not image_pred.size(0):
-            continue
-        # Object confidence times class confidence
-        score = image_pred[:, 4] * image_pred[:, 5:].max(1)[0]
-        # Sort by it
-        image_pred = image_pred[(-score).argsort()]
-        class_confs, class_preds = image_pred[:, 5:].max(1, keepdim=True)
-        detections = torch.cat((image_pred[:, :5], class_confs.float(), class_preds.float()), 1)
-        # Perform non-maximum suppression
-        keep_boxes = []
-        while detections.size(0):
-            
-            large_overlap = intersection_over_union(detections[0, :4].unsqueeze(0), detections[:, :4],True) > nms_thres
-            label_match = detections[0, -1] == detections[:, -1]
-            # Indices of boxes with lower confidence scores, large IOUs and matching labels
-            invalid = large_overlap & label_match
-            weights = detections[invalid, 4:5]
-            # Merge overlapping bboxes by order of confidence
-            detections[0, :4] = (weights * detections[invalid, :4]).sum(0) / weights.sum()
-            keep_boxes += [detections[0]]
-            detections = detections[~invalid]
-        if keep_boxes:
-            ouptut[image_i] = torch.stack(keep_boxes)
-    
-    return np.array(output)
 
 def non_max(bbox,confidence_threshold,nms_thres):
     """
     """
+    
     bbox = torch.squeeze(bbox)
     
     boxes = xywh2xyxy(bbox[:,:4])
-
+    bbox = bbox[bbox[:, 4] >= confidence_threshold]
+    if bbox.numel() ==0:
+        return bbox
     score = bbox[:, 4] * bbox[:, 5:].max(1)[0]
+
+    # Sort by it
+    bbox = bbox[(-score).argsort()]
+    class_confs, class_preds = bbox[:, 5:].max(1, keepdim=True)
+    
+    detections = torch.cat((bbox[:, :5], class_confs.float(), class_preds.float()), 1)
+    # Perform non-maximum suppression
+
     indexes = nms(boxes,score,nms_thres)
     #Select the indexes with heighest ratio from bbox tensor
-    boxes = bbox[indexes]
+    #boxes = detections[indexes]
+    boxes = detections[indexes[:1]]
     boxes = boxes[boxes[:,4] >= confidence_threshold]
+    
     return boxes
 
 
@@ -134,40 +105,29 @@ def draw_bbox(img,detections):
         img = img.detach().cpu().numpy()
     if isinstance(detections,torch.Tensor):
         detections = detections.detach().cpu().numpy()
-    detections = rescale_boxes(detections, img.shape[2], img.shape[3])
+    #detections = rescale_boxes(detections, img.shape[2], (416,416))
     unique_labels = np.unique(detections[:,-1])
     n_cls_preds = len(unique_labels)
     img = img*255
     img = img.reshape(img.shape[2],img.shape[3],img.shape[1])
-    color = (255, 0, 0) 
-    thickness = 2
+    img = Image.fromarray(np.uint8(img))
+    
+    if detections is not None:
+        draw_img = ImageDraw.Draw(img)
+    
     #Error detections only contain 4 values 
-    for x1, y1, x2, y2, conf, cls_pred in detections:
-        start_point =  (int(x1),int(y1))
-        end_point = (int(x2-x1),int(y2-y1))
-        #img = cv2.rectangle(img,start_point,end_point,color, thickness)
+    print(detections.shape)
+    for x1, y1, x2, y2, conf, cls_conf, cls_pred in detections:
+        #print(f'bbox coordinates  {x1} {y1} {x2} {y2}')
+        cordinates = [(x1,y1),(x2,y2)]
+        draw_img.rectangle(cordinates,fill=None,outline='red')
     return [img,conf,cls_pred] 
 
-def rescale_boxes(detections,width,height):
-    """
-    The functions rescales the boxes given as (center_x ,center_y,w,h) and return 
-    rescaled coordinates converted to x1,y1,x2,y2.
-    """
-    #rescale boxes to original image width and height.
-    
-    boxes = detections[:,0:4] * np.array([width,height,width,height])
-    detections = np.concatenate((boxes,detections[:,4:]),axis=1)
-    return detections
 
-def xywh2xyxy(detections):
-    # Yolo returns box coordinates as center X, center Y and width height for each box
-    # x1 = centerx - width/2
-    detections[:,0] = detections[:,0] - detections[:,2]/2
-    # y1 = centery - height/2
-    detections[:,1] = detections[:,1] - detections[:,3]/2
-    #x2 = x1 + width 
-    detections[:,2] = detections[:,0] + detections[:,2]
-    #y2 = y1 + height
-    detections[:,3] = detections[:,1] + detections[:,3]
-    return detections
-# for unit Testing
+def xywh2xyxy(x):
+    y = x.new(x.shape)
+    y[..., 0] = x[..., 0] - x[..., 2] / 2
+    y[..., 1] = x[..., 1] - x[..., 3] / 2
+    y[..., 2] = x[..., 0] + x[..., 2] / 2
+    y[..., 3] = x[..., 1] + x[..., 3] / 2
+    return y

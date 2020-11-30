@@ -159,11 +159,13 @@ class YoloLayer(nn.Module):
         self.grid_size= 0
         self.img_dim = img_dim
         self._init_loss_func()
-    def compute_grid_offset(self,grid_size):
+
+    def compute_grid_offset(self,grid_size):    
         """
         Args:
-            grid_size (int) : the grid_size of output tensor of BackBone Feature Extractor.
+           grid_size (int) : the grid_size of output tensor of BackBone Feature Extractor.
         """
+       
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.grid_size = grid_size
         # 
@@ -179,41 +181,53 @@ class YoloLayer(nn.Module):
         self.anchors_w = self.scaled_anchors[:,0:1].view((1,self.num_anchors,1,1))
         self.anchors_h = self.scaled_anchors[:,1:2].view((1,self.num_anchors,1,1))
         
+
     def forward(self,x,targets,input_dim):
         """
         """
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        batch_size = x.size(0) #batch_size
+        # Tensors for cuda support
+        FloatTensor = torch.cuda.FloatTensor if x.is_cuda else torch.FloatTensor
+        LongTensor = torch.cuda.LongTensor if x.is_cuda else torch.LongTensor
+        ByteTensor = torch.cuda.ByteTensor if x.is_cuda else torch.ByteTensor
+
+        self.img_dim = input_dim
+        num_samples = x.size(0)
         grid_size = x.size(2)
+
         prediction = (
-            x.view(batch_size, self.num_anchors, self.num_classes + 5, grid_size, grid_size)
+            x.view(num_samples, self.num_anchors, self.num_classes + 5, grid_size, grid_size)
             .permute(0, 1, 3, 4, 2)
             .contiguous()
-        ) #  (batch_size , anchors , grid_size , grid_size , classes+5)
+        )
 
-        # If you're unable to understand arr[...,1] Check ellipsis in python
-        x = torch.sigmoid(prediction[...,0]) # (batch_size , anchors , grid_size , grid_size)
-        y = torch.sigmoid(prediction[...,1]) # (batch_size , anchors , grid_size , grid_size)
-        
-        width = prediction[...,2] # (batch_size , anchors , grid_size , grid_size)
-        hegith = prediction[...,3] # (batch_size , anchors , grid_size , grid_size)
-        pred_confidence = torch.sigmoid(prediction[...,4]) # (batch_size , anchors , grid_size , grid_size)
-        pred_class  = torch.sigmoid(prediction[...,5:]) # (batch_size , anchors , grid_size , grid_size , classes)
-        
+        # Get outputs
+        x = torch.sigmoid(prediction[..., 0])  # Center x
+        y = torch.sigmoid(prediction[..., 1])  # Center y
+        w = prediction[..., 2]  # Width
+        h = prediction[..., 3]  # Height
+        pred_conf = torch.sigmoid(prediction[..., 4])  # Conf
+        pred_cls = torch.sigmoid(prediction[..., 5:])  # Cls pred.
+
+        # If grid size does not match current we compute new offsets
         if grid_size != self.grid_size:
             self.compute_grid_offset(grid_size)
-        #predicted_boxes
-        pred_boxes = torch.FloatTensor(size=(prediction[...,:4].shape)).to(device) # Float tensor of shape = (batch_size,anchors,grid_size,grid_size)
-        pred_boxes[...,0] = x.data + self.grid_x # (batch_size , anchors , grid_size , grid_size)
-        pred_boxes[...,1] = y.data + self.grid_y # (batch_size , anchors , grid_size , grid_size)
-        pred_boxes[...,2] = torch.exp(width) + self.anchors_w # (batch_size , anchors , grid_size , grid_size)
-        pred_boxes[...,3] = torch.exp(hegith) + self.anchors_h # (batch_size , anchors , grid_size , grid_size)
-        
-        #Concat the tensor of predicted bboxes , confidence and class 
-        output =  torch.cat(
-            [pred_boxes.view(batch_size,-1,4) , pred_confidence.view(batch_size,-1,1)\
-                 , pred_class.view(batch_size,-1,self.num_classes)],-1 
+
+        # Add offset and scale with anchors
+        pred_boxes = FloatTensor(prediction[..., :4].shape)
+        pred_boxes[..., 0] = x.data + self.grid_x
+        pred_boxes[..., 1] = y.data + self.grid_y
+        pred_boxes[..., 2] = torch.exp(w.data) * self.anchors_w
+        pred_boxes[..., 3] = torch.exp(h.data) * self.anchors_h
+
+        output = torch.cat(
+            (
+                pred_boxes.view(num_samples, -1, 4) * self.stride,
+                pred_conf.view(num_samples, -1, 1),
+                pred_cls.view(num_samples, -1, self.num_classes),
+            ),
+            -1,
         )
+
         #for testing.   
         if targets is None:
             return output , 0

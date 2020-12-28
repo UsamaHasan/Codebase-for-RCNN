@@ -1,5 +1,7 @@
 # Codebase of RCNN
-### A generic codebase of RCNN
+
+### Introduction.
+I created this repo to pratice implementing RCNN framework and inspired by detectron2(https://github.com/facebookresearch/detectron2) and mmdet(https://github.com/open-mmlab/mmdetection) we decided to create a container where we can implement object detection api and implement different models. If you wanted to join and contribute with us, just drop a email at usamahasan72@gmail.com. 
 
 #### The repo is currently in the development phase.
 
